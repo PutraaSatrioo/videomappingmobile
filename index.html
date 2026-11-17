@@ -21,7 +21,6 @@
             height: 100vh;
             width: 100vw;
         }
-        /* Kamera Fullscreen */
         
         #camera-feed {
             position: fixed;
@@ -32,7 +31,29 @@
             object-fit: cover;
             z-index: 1;
         }
-        /* Overlay UI */
+        /* Efek Kilatan Cahaya Saat Menangkap */
+        
+        #capture-flash {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, rgba(251, 191, 36, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%);
+            z-index: 5;
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .flash-active {
+            animation: flashAnim 0.65s ease-out forwards;
+        }
+        
+        @keyframes flashAnim {
+            0% {
+                opacity: 0.95;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
         
         .ui-layer {
             position: fixed;
@@ -92,49 +113,71 @@
             font-weight: bold;
             font-size: 12px;
             cursor: pointer;
+            transition: transform 0.2s;
         }
-        /* Bidikan Tengah (Reticle) */
+        
+        .btn-collection.bump {
+            animation: bumpScale 0.4s ease;
+        }
+        
+        @keyframes bumpScale {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.25);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        /* Bidikan Tengah & Animasi Menangkap */
         
         .scanner-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            position: relative;
         }
         
         .reticle {
             width: 220px;
             height: 220px;
-            border: 2px dashed rgba(251, 191, 36, 0.8);
+            border: 3px dashed rgba(251, 191, 36, 0.85);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 0 30px rgba(251, 191, 36, 0.25);
             animation: pulse 2s infinite;
+            transition: all 0.3s ease;
+        }
+        
+        .reticle.catching {
+            animation: spinCatch 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            border-style: solid;
+            border-color: #34d399;
+            box-shadow: 0 0 50px rgba(52, 211, 153, 0.9);
         }
         
         .reticle-inner {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: #fbbf24;
             border-radius: 50%;
+            transition: transform 0.3s;
         }
         
-        .target-label {
-            margin-top: 14px;
-            background: rgba(0, 0, 0, 0.7);
-            padding: 6px 14px;
-            border-radius: 12px;
-            font-size: 14px;
-            color: #fde68a;
-            text-align: center;
+        .reticle.catching .reticle-inner {
+            transform: scale(2.5);
+            background: #34d399;
         }
         
         @keyframes pulse {
             0% {
                 transform: scale(0.96);
-                opacity: 0.8;
+                opacity: 0.85;
             }
             50% {
                 transform: scale(1.03);
@@ -142,8 +185,83 @@
             }
             100% {
                 transform: scale(0.96);
-                opacity: 0.8;
+                opacity: 0.85;
             }
+        }
+        
+        @keyframes spinCatch {
+            0% {
+                transform: scale(1.1) rotate(0deg);
+            }
+            60% {
+                transform: scale(0.35) rotate(240deg);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+            }
+        }
+        
+        .target-label {
+            margin-top: 14px;
+            background: rgba(0, 0, 0, 0.72);
+            padding: 8px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            color: #fde68a;
+            text-align: center;
+            border: 1px solid rgba(251, 191, 36, 0.3);
+        }
+        /* Banner Notifikasi Berhasil Tertangkap */
+        
+        #catch-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.5);
+            background: linear-gradient(135deg, #065f46 0%, #0f172a 100%);
+            border: 2px solid #34d399;
+            border-radius: 20px;
+            padding: 22px 28px;
+            text-align: center;
+            z-index: 6;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85);
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 82%;
+            max-width: 320px;
+        }
+        
+        #catch-banner.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        #catch-banner .check-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #10b981;
+            color: #000;
+            font-size: 26px;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px auto;
+        }
+        
+        #catch-banner h3 {
+            color: #34d399;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        
+        #catch-banner p {
+            color: #f8fafc;
+            font-size: 14px;
+            font-weight: 600;
         }
         /* Tombol Tangkap Bawah */
         
@@ -157,17 +275,17 @@
         }
         
         #catch-btn {
-            width: 82px;
-            height: 82px;
+            width: 86px;
+            height: 86px;
             border-radius: 50%;
             background: radial-gradient(circle, #fbbf24 0%, #d97706 100%);
             border: 5px solid #fff;
             color: #000;
             font-weight: 800;
-            font-size: 13px;
+            font-size: 12px;
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.8);
             cursor: pointer;
-            transition: transform 0.15s;
+            transition: transform 0.15s, background 0.3s;
         }
         
         #catch-btn:active {
@@ -175,9 +293,9 @@
         }
         
         #catch-btn:disabled {
-            background: #475569;
-            border-color: #94a3b8;
-            color: #cbd5e1;
+            background: #334155;
+            border-color: #64748b;
+            color: #94a3b8;
             box-shadow: none;
             cursor: not-allowed;
         }
@@ -220,7 +338,6 @@
             font-size: 13px;
             color: #cbd5e1;
         }
-        /* Form Kredensial */
         
         .form-group {
             margin-bottom: 16px;
@@ -274,21 +391,29 @@
 <body>
 
     <video id="camera-feed" autoplay playsinline></video>
+    <div id="capture-flash"></div>
+
+    <!-- Notifikasi Berhasil Menangkap -->
+    <div id="catch-banner">
+        <div class="check-icon">&#10003;</div>
+        <h3>BERHASIL DITANGKAP!</h3>
+        <p id="banner-fauna-name">Harimau Sumatera</p>
+    </div>
 
     <div class="ui-layer">
         <div class="top-bar">
             <div class="top-left">
                 <button class="btn-settings" onclick="toggleSettings(true)">Kredensial</button>
-                <div class="badge" id="status-badge">Menunggu URL...</div>
+                <div class="badge" id="status-badge">Menghubungkan...</div>
             </div>
-            <button class="btn-collection" onclick="toggleCollection(true)">Koleksi (<span id="count">0</span>)</button>
+            <button class="btn-collection" id="btn-col" onclick="toggleCollection(true)">Koleksi (<span id="count">0</span>)</button>
         </div>
 
         <div class="scanner-container">
-            <div class="reticle">
+            <div class="reticle" id="reticle">
                 <div class="reticle-inner"></div>
             </div>
-            <div class="target-label" id="target-text">Atur kredensial Supabase terlebih dahulu</div>
+            <div class="target-label" id="target-text">Memuat target...</div>
         </div>
 
         <div class="bottom-bar">
@@ -302,26 +427,20 @@
             <h2>Kredensial Supabase</h2>
             <button class="btn-settings" onclick="toggleSettings(false)">Tutup</button>
         </div>
-
         <div class="form-group">
             <label for="input-url">Supabase Project URL</label>
             <input type="url" id="input-url" placeholder="https://xxxxxxxxxxxx.supabase.co" />
         </div>
-
         <div class="form-group">
             <label for="input-key">Publishable API Key</label>
             <input type="text" id="input-key" placeholder="sb_publishable_..." />
         </div>
-
         <div class="form-group">
             <label for="input-target">Target ID Fauna (Database)</label>
             <input type="text" id="input-target" placeholder="harimau_sumatra" />
         </div>
-
         <button class="btn-save" onclick="saveCredentials()">Simpan & Hubungkan</button>
-        <p class="hint-text">
-            Kredensial disimpan langsung di memori browser perangkat ini. Ambil <b>Project URL</b> dari menu <i>Project Settings &rarr; Data API</i> di dashboard Supabase.
-        </p>
+        <p class="hint-text">Kredensial tersimpan otomatis di browser perangkat ini.</p>
     </div>
 
     <!-- Modal Laci Koleksi HP -->
@@ -342,8 +461,9 @@
         let db = null;
         let myCollection = [];
         let currentTargetId = localStorage.getItem('xr_target_id') || DEFAULT_TARGET;
+        let lastKnownCaught = null;
+        let isCatchingNow = false;
 
-        // 1. Nyalakan Kamera Belakang HP
         async function startCamera() {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
@@ -355,11 +475,9 @@
                 document.getElementById('camera-feed').srcObject = stream;
             } catch (err) {
                 alert('Gagal membuka kamera. Pastikan halaman dibuka melalui HTTPS.');
-                console.error(err);
             }
         }
 
-        // 2. Muat Kredensial dari LocalStorage
         function loadCredentials() {
             const savedUrl = localStorage.getItem('xr_supabase_url') || '';
             const savedKey = localStorage.getItem('xr_supabase_key') || DEFAULT_KEY;
@@ -376,7 +494,7 @@
 
             currentTargetId = savedTarget;
             db = window.supabase.createClient(savedUrl, savedKey);
-            initRealtime();
+            startAutoSync();
         }
 
         function saveCredentials() {
@@ -388,23 +506,34 @@
                 alert('Masukkan Supabase Project URL yang valid (diawali https://)');
                 return;
             }
-            if (!keyVal) {
-                alert('Publishable API Key tidak boleh kosong.');
-                return;
-            }
 
             localStorage.setItem('xr_supabase_url', urlVal);
             localStorage.setItem('xr_supabase_key', keyVal);
             localStorage.setItem('xr_target_id', targetVal);
-
             location.reload();
         }
 
-        // 3. Cek Status Awal & Dengarkan Perubahan Realtime
-        async function initRealtime() {
-            const badge = document.getElementById('status-badge');
-            badge.innerText = 'Menghubungkan...';
+        // Sinkronisasi otomatis setiap 1 detik + Realtime (tanpa perlu refresh manual)
+        function startAutoSync() {
+            fetchLatestState();
+            setInterval(() => {
+                if (!isCatchingNow) fetchLatestState();
+            }, 1000);
 
+            db.channel('fauna-updates')
+                .on('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'fauna_state'
+                }, payload => {
+                    if (payload.new.id === currentTargetId && !isCatchingNow) {
+                        updateUIState(payload.new, false);
+                    }
+                })
+                .subscribe();
+        }
+
+        async function fetchLatestState() {
             const {
                 data,
                 error
@@ -415,28 +544,17 @@
                 .single();
 
             if (error) {
-                badge.innerText = 'Koneksi Gagal';
-                document.getElementById('target-text').innerText = 'Cek URL / Nama Tabel di Kredensial';
-                console.error(error);
+                document.getElementById('status-badge').innerText = 'Koneksi Gagal';
+                document.getElementById('target-text').innerText = 'Cek Kredensial / Database';
                 return;
             }
 
-            if (data) updateUIState(data);
-
-            db.channel('fauna-updates')
-                .on('postgres_changes', {
-                    event: 'UPDATE',
-                    schema: 'public',
-                    table: 'fauna_state'
-                }, payload => {
-                    if (payload.new.id === currentTargetId) {
-                        updateUIState(payload.new);
-                    }
-                })
-                .subscribe();
+            if (data) {
+                updateUIState(data, false);
+            }
         }
 
-        function updateUIState(fauna) {
+        function updateUIState(fauna, justCaughtByUser) {
             const btn = document.getElementById('catch-btn');
             const badge = document.getElementById('status-badge');
             const targetText = document.getElementById('target-text');
@@ -444,25 +562,66 @@
             if (fauna.is_caught) {
                 btn.disabled = true;
                 btn.innerText = 'TERTANGKAP';
-                badge.innerText = 'Sudah Diambil';
-                targetText.innerText = `${fauna.name} telah masuk ke koleksimu!`;
+                badge.innerText = 'Sudah Ditangkap';
+                targetText.innerText = `${fauna.name} sudah tertangkap!`;
                 addToCollection(fauna);
+
+                if (justCaughtByUser || lastKnownCaught === false) {
+                    playCatchAnimation(fauna.name);
+                }
             } else {
+                // Jika di Unity di-reset / Play ulang, HP otomatis siap menangkap lagi
                 btn.disabled = false;
                 btn.innerText = 'TANGKAP';
                 badge.innerText = 'Aktif: ' + fauna.island;
                 targetText.innerText = `Arahkan ke ${fauna.name}`;
+                removeFromCollection(fauna.id);
             }
+
+            lastKnownCaught = fauna.is_caught;
         }
 
-        // 4. Kirim Perintah Tangkap ke Supabase
+        function playCatchAnimation(faunaName) {
+            const reticle = document.getElementById('reticle');
+            const flash = document.getElementById('capture-flash');
+            const banner = document.getElementById('catch-banner');
+            const colBtn = document.getElementById('btn-col');
+
+            document.getElementById('banner-fauna-name').innerText = `${faunaName} masuk ke koleksimu!`;
+
+            // Putar reticle & kilatan cahaya
+            reticle.classList.remove('catching');
+            flash.classList.remove('flash-active');
+            void reticle.offsetWidth; // trigger reflow
+            reticle.classList.add('catching');
+            flash.classList.add('flash-active');
+
+            // Munculkan banner "BERHASIL DITANGKAP!"
+            banner.classList.add('show');
+            colBtn.classList.add('bump');
+
+            if (navigator.vibrate) navigator.vibrate([120, 60, 220]);
+
+            setTimeout(() => {
+                reticle.classList.remove('catching');
+                colBtn.classList.remove('bump');
+            }, 700);
+
+            setTimeout(() => {
+                banner.classList.remove('show');
+            }, 2400);
+        }
+
         async function catchFauna() {
-            if (!db) return;
+            if (!db || isCatchingNow) return;
+            isCatchingNow = true;
+
             const btn = document.getElementById('catch-btn');
             btn.disabled = true;
             btn.innerText = '...';
 
             const {
+                data,
                 error
             } = await db
                 .from('fauna_state')
@@ -470,14 +629,18 @@
                     is_caught: true,
                     caught_at: new Date().toISOString()
                 })
-                .eq('id', currentTargetId);
+                .eq('id', currentTargetId)
+                .select()
+                .single();
+
+            isCatchingNow = false;
 
             if (error) {
                 alert('Gagal menangkap: ' + error.message);
                 btn.disabled = false;
                 btn.innerText = 'TANGKAP';
-            } else if (navigator.vibrate) {
-                navigator.vibrate([100, 50, 200]);
+            } else if (data) {
+                updateUIState(data, true);
             }
         }
 
@@ -488,9 +651,19 @@
             }
         }
 
+        function removeFromCollection(id) {
+            const prevLen = myCollection.length;
+            myCollection = myCollection.filter(item => item.id !== id);
+            if (myCollection.length !== prevLen) renderCollection();
+        }
+
         function renderCollection() {
             document.getElementById('count').innerText = myCollection.length;
             const listEl = document.getElementById('collection-list');
+            if (myCollection.length === 0) {
+                listEl.innerHTML = '<p style="color: #94a3b8;">Belum ada fauna yang tertangkap.</p>';
+                return;
+            }
             listEl.innerHTML = myCollection.map(item => `
         <div class="card-item">
           <h3>${item.name}</h3>
