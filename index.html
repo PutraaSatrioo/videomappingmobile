@@ -21,6 +21,7 @@
             color: #fff;
             overflow: hidden;
             height: 100vh;
+            height: 100dvh;
             width: 100vw;
             user-select: none;
             overscroll-behavior: none;
@@ -54,7 +55,7 @@
         }
         
         .flash-active {
-            animation: flashAnim 0.75s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: flashAnim 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         
         @keyframes flashAnim {
@@ -69,11 +70,11 @@
         
         #captured-orb {
             position: fixed;
-            width: 68px;
-            height: 68px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
-            background: radial-gradient(circle, #ffffff 30%, rgba(255, 255, 255, 0.85) 60%, rgba(255, 255, 255, 0) 75%);
-            box-shadow: 0 0 24px 10px rgba(255, 255, 255, 0.95), 0 0 55px 22px rgba(255, 255, 255, 0.7), 0 0 90px 35px rgba(186, 230, 253, 0.5);
+            background: radial-gradient(circle, #ffffff 32%, rgba(255, 255, 255, 0.88) 60%, rgba(255, 255, 255, 0) 76%);
+            box-shadow: 0 0 26px 12px rgba(255, 255, 255, 0.95), 0 0 60px 24px rgba(255, 255, 255, 0.72), 0 0 95px 38px rgba(196, 181, 253, 0.55);
             transform: translate(-50%, -50%) scale(0);
             opacity: 0;
             pointer-events: none;
@@ -105,6 +106,7 @@
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.12);
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             border: 1px solid rgba(255, 255, 255, 0.25);
             color: #fff;
             display: flex;
@@ -126,6 +128,7 @@
             color: rgba(255, 255, 255, 0.85);
             background: rgba(0, 0, 0, 0.35);
             backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             padding: 6px 14px;
             border-radius: 999px;
             border: 1px solid rgba(255, 255, 255, 0.18);
@@ -180,7 +183,7 @@
                 transform: translateY(-5px);
             }
         }
-        /* Saat objek terdeteksi di kamera (ubah glow menjadi ungu/galaxy yang selaras) */
+        /* Saat objek terdeteksi di kamera */
         
         .bow-stage.detected #bow-svg {
             filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 22px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 36px rgba(139, 92, 246, 0.8));
@@ -193,7 +196,7 @@
         /* Efek busur bersinar lembut sesaat saat dilepas */
         
         .bow-stage.firing #bow-svg {
-            animation: bowGlowSurge 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: bowGlowSurge 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         
         @keyframes bowGlowSurge {
@@ -214,9 +217,9 @@
         
         #arrow-group {
             opacity: 1;
-            transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        /* Menahan opacity 0 sesaat selama bola cahaya meluncur menuju Tertangkap */
+        /* Menahan opacity 0 selama bola cahaya meluncur perlahan menuju bawah */
         
         .bow-stage.arrow-hidden #arrow-group {
             opacity: 0 !important;
@@ -226,7 +229,7 @@
         /* Animasi anak panah berubah terang bercahaya dan menghilang perlahan saat dilepas */
         
         .bow-stage.firing #arrow-group {
-            animation: arrowBrightFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+            animation: arrowBrightFade 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
         }
         
         @keyframes arrowBrightFade {
@@ -261,27 +264,27 @@
         }
         
         .bow-stage.firing .arrow-sparkle {
-            animation: arrowGlitter 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: arrowGlitter 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         
         .bow-stage.firing .arrow-sparkle:nth-child(2) {
-            animation-delay: 0.05s;
+            animation-delay: 0.06s;
         }
         
         .bow-stage.firing .arrow-sparkle:nth-child(3) {
-            animation-delay: 0.1s;
+            animation-delay: 0.12s;
         }
         
         .bow-stage.firing .arrow-sparkle:nth-child(4) {
-            animation-delay: 0.15s;
+            animation-delay: 0.18s;
         }
         
         .bow-stage.firing .arrow-sparkle:nth-child(5) {
-            animation-delay: 0.2s;
+            animation-delay: 0.24s;
         }
         
         .bow-stage.firing .arrow-sparkle:nth-child(6) {
-            animation-delay: 0.25s;
+            animation-delay: 0.3s;
         }
         
         @keyframes arrowGlitter {
@@ -383,7 +386,6 @@
         
         .subtle-guide.fire-ready {
             color: #a78bfa;
-            /* warna galaxy / violet */
         }
         /* Bilah Bawah */
         
@@ -413,7 +415,7 @@
         }
         
         .side-action.bump {
-            animation: bumpScale 0.45s ease;
+            animation: bumpScale 0.55s ease;
         }
         
         @keyframes bumpScale {
@@ -421,7 +423,7 @@
                 transform: scale(1);
             }
             50% {
-                transform: scale(1.22);
+                transform: scale(1.25);
             }
             100% {
                 transform: scale(1);
@@ -475,7 +477,7 @@
             font-weight: 700;
             letter-spacing: 0.3px;
             gap: 3px;
-            transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+            transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
         }
         
         .pill-item.active-ready {
@@ -487,13 +489,11 @@
         .pill-item.active-caught {
             background: rgba(255, 255, 255, 0.95);
             color: #2e1065;
-            /* Deep Indigo */
             box-shadow: 0 0 18px rgba(139, 92, 246, 0.75);
-            /* Glow ungu */
         }
         
         .center-pill.absorb-glow {
-            animation: pillAbsorb 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+            animation: pillAbsorb 0.8s cubic-bezier(0.22, 1, 0.36, 1);
         }
         
         @keyframes pillAbsorb {
@@ -518,6 +518,7 @@
             transform: translateX(-50%) translateY(10px);
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.25);
             color: #f8fafc;
             padding: 10px 16px;
@@ -543,6 +544,7 @@
             inset: 0;
             background: rgba(9, 13, 22, 0.92);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             z-index: 12;
             display: none;
             flex-direction: column;
@@ -638,7 +640,7 @@
     <canvas id="vision-canvas" width="80" height="80" style="display:none;"></canvas>
     <div id="capture-flash"></div>
 
-    <!-- Bola cahaya putih yang terbang masuk ke tulisan Tertangkap -->
+    <!-- Bola cahaya putih yang terbang perlahan masuk ke bilah bawah -->
     <div id="captured-orb"></div>
 
     <!-- Pesan Hint Singkat -->
@@ -647,6 +649,7 @@
     <div class="ui-layer">
         <!-- Bar Atas -->
         <div class="top-bar">
+            <!-- Kiri: Pengaturan Supabase -->
             <button class="icon-btn-top" onclick="toggleSettings(true)" title="Kredensial Supabase">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
@@ -654,7 +657,25 @@
           <line x1="21" y1="12" x2="9" y2="12"/>
         </svg>
       </button>
+
+            <!-- Tengah: Status Wilayah -->
             <div class="status-pill-top" id="status-badge">Menghubungkan...</div>
+
+            <!-- Kanan: Tombol Full Screen -->
+            <button class="icon-btn-top" id="btn-fullscreen" onclick="toggleFullScreen()" title="Layar Penuh">
+        <svg id="icon-fs-enter" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 3 21 3 21 9"/>
+          <polyline points="9 21 3 21 3 15"/>
+          <line x1="21" y1="3" x2="14" y2="10"/>
+          <line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+        <svg id="icon-fs-exit" style="display:none;" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="4 14 10 14 10 20"/>
+          <polyline points="20 10 14 10 14 4"/>
+          <line x1="14" y1="10" x2="21" y2="3"/>
+          <line x1="3" y1="21" x2="10" y2="14"/>
+        </svg>
+      </button>
         </div>
 
         <!-- Tengah: Ilustrasi Busur & Anak Panah Bercahaya -->
@@ -693,7 +714,7 @@
             <!-- Batang Anak Panah -->
             <line x1="120" y1="46" x2="120" y2="178" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/>
 
-            <!-- Ujung Mata Panah Runcing (Tanpa Mata) -->
+            <!-- Ujung Mata Panah Runcing -->
             <path d="M 108 64 L 120 42 L 132 64" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
             <path d="M 113 62 L 120 49 L 127 62" stroke="#FFFFFF" stroke-width="1.6" stroke-opacity="0.8" stroke-linecap="round" stroke-linejoin="round"/>
 
@@ -799,6 +820,7 @@
         const DEFAULT_URL = 'https://lkyunvagzbodtmvbdfdm.supabase.co';
         const DEFAULT_KEY = 'sb_publishable_CRMI4bAg4seaGDWpY-CfEw_pqKDzO1z';
         const DEFAULT_TARGET = 'harimau_sumatra';
+        const DEFAULT_HINT_MSG = 'Arahkan busur panah ke harimau galaxy, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!';
 
         let db = null;
         let myCollection = [];
@@ -1021,18 +1043,14 @@
                     else h = ((r - g) / d + 4) * 60;
                 }
 
-                // --- PEMBARUAN PENDETEKSIAN (WARNA GALAXY) ---
-                // Mengubah parameter pendeteksian agar mencari warna Ungu, Indigo, Violet, dan Neon Blue (Galaxy) dari Harimau:
-                // Hue: 215° - 325° (Merentang dari Biru tua, Indigo, Violet, Ungu hingga Magenta)
-                // Saturation: minimal 24% (karena saturasi layar neon galaxy di kamera cukup tinggi)
-                // Value: minimal 20% (agar terekam meski kontras tinggi dengan latar)
-                if (h >= 215 && h <= 325 && s >= 0.24 && v >= 0.20) {
+                // Rentang warna Galaxy (Biru Neon, Indigo, Ungu, hingga Magenta)
+                if (h >= 200 && h <= 335 && s >= 0.18 && v >= 0.15) {
                     matchedPixels++;
                 }
             }
 
             const matchRatio = matchedPixels / totalPixels;
-            const detectedNow = matchRatio >= 0.09; // Toleransi area 9% karena warna galaxy menyebar di loreng tubuh harimau
+            const detectedNow = matchRatio >= 0.03;
 
             if (detectedNow !== isObjectDetected) {
                 isObjectDetected = detectedNow;
@@ -1115,14 +1133,18 @@
 
             if (fauna.is_caught) {
                 addToCollection(fauna);
-                refreshActionState();
+                if (!isFiringAnim) {
+                    refreshActionState();
+                }
                 if (!fromLocalCatch && wasCaught === false && !isFiringAnim) {
                     arrowGroup.style.setProperty('--release-y', '16px');
                     playBowReleaseAndOrbAnimation();
                 }
             } else {
                 removeFromCollection(fauna.id);
-                refreshActionState();
+                if (!isFiringAnim) {
+                    refreshActionState();
+                }
             }
         }
 
@@ -1182,51 +1204,53 @@
             const endX = endRect.left + endRect.width / 2;
             const endY = endRect.top + endRect.height / 2;
 
-            // Tahan kondisi tersembunyi sesaat setelah animasi memudar selesai (760ms)
             setTimeout(() => {
                 bowStage.classList.add('arrow-hidden');
                 bowStage.classList.remove('firing');
                 arrowGroup.style.transform = 'translateY(0px)';
-            }, 760);
+            }, 900);
 
-            // Tahap 2: Munculkan bola cahaya putih & luncurkan masuk ke tulisan Tertangkap
+            // Tahap 2: Munculkan bola cahaya putih & tahan sejenak di tengah
             setTimeout(() => {
                 orb.style.transition = 'none';
                 orb.style.left = startX + 'px';
                 orb.style.top = startY + 'px';
-                orb.style.transform = 'translate(-50%, -50%) scale(0.2)';
-                orb.style.opacity = '1';
+                orb.style.transform = 'translate(-50%, -50%) scale(0.15)';
+                orb.style.opacity = '0';
 
                 requestAnimationFrame(() => {
-                    orb.style.transition = 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)';
-                    orb.style.transform = 'translate(-50%, -50%) scale(1.12)';
+                    orb.style.transition = 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease';
+                    orb.style.transform = 'translate(-50%, -50%) scale(1.18)';
+                    orb.style.opacity = '1';
 
+                    // Tahap 3: Luncurkan bola cahaya perlahan ke bilah bawah
                     setTimeout(() => {
-                        orb.style.transition = 'left 0.55s cubic-bezier(0.45, 0, 0.55, 1), top 0.55s cubic-bezier(0.45, 0, 0.55, 1), transform 0.55s ease-in, opacity 0.55s ease-in';
+                        orb.style.transition = 'left 1.45s cubic-bezier(0.25, 0.85, 0.3, 1), top 1.45s cubic-bezier(0.25, 0.85, 0.3, 1), transform 1.45s ease-in-out, opacity 1.45s ease-in';
                         orb.style.left = endX + 'px';
                         orb.style.top = endY + 'px';
-                        orb.style.transform = 'translate(-50%, -50%) scale(0.15)';
-                        orb.style.opacity = '0.2';
+                        orb.style.transform = 'translate(-50%, -50%) scale(0.18)';
+                        orb.style.opacity = '0.25';
 
-                        // Tahap 3: Tepat ketika bola cahaya sudah masuk ke Tertangkap, panah muncul kembali!
+                        // Tahap 4: Bola cahaya terserap ke inventory/Tertangkap, perbarui hitungan, lalu munculkan panah kembali
                         setTimeout(() => {
                             orb.style.opacity = '0';
+                            isFiringAnim = false;
 
                             centerPill.classList.remove('absorb-glow');
                             void centerPill.offsetWidth;
                             centerPill.classList.add('absorb-glow');
 
                             colBtn.classList.add('bump');
-                            setTimeout(() => colBtn.classList.remove('bump'), 500);
+                            setTimeout(() => colBtn.classList.remove('bump'), 550);
 
-                            // Munculkan kembali anak panah secara mulus (fade in)
-                            bowStage.classList.remove('arrow-hidden');
-                            isFiringAnim = false;
+                            renderCollection();
                             refreshActionState();
-                        }, 530);
-                    }, 220);
+
+                            bowStage.classList.remove('arrow-hidden');
+                        }, 1450);
+                    }, 560);
                 });
-            }, 280);
+            }, 420);
         }
 
         async function catchFauna() {
@@ -1259,14 +1283,14 @@
         function addToCollection(fauna) {
             if (!myCollection.some(item => item.id === fauna.id)) {
                 myCollection.push(fauna);
-                renderCollection();
+                if (!isFiringAnim) renderCollection();
             }
         }
 
         function removeFromCollection(id) {
             const prevLen = myCollection.length;
             myCollection = myCollection.filter(item => item.id !== id);
-            if (myCollection.length !== prevLen) renderCollection();
+            if (myCollection.length !== prevLen && !isFiringAnim) renderCollection();
         }
 
         function renderCollection() {
@@ -1284,14 +1308,55 @@
       `).join('');
         }
 
-        function showHint() {
+        function showHint(customMessage) {
             const toast = document.getElementById('hint-toast');
+            toast.innerText = customMessage || DEFAULT_HINT_MSG;
             toast.classList.add('show');
             clearTimeout(hintTimeout);
             hintTimeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, 3200);
         }
+
+        // Fitur Full Screen (Layar Penuh)
+        function toggleFullScreen() {
+            const doc = window.document;
+            const docEl = doc.documentElement;
+
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+            const isFullScreen = doc.fullscreenElement || doc.mozFullScreenElement || doc.webkitFullscreenElement || doc.msFullscreenElement;
+
+            if (!isFullScreen) {
+                if (requestFullScreen) {
+                    const promise = requestFullScreen.call(docEl);
+                    if (promise && typeof promise.catch === 'function') {
+                        promise.catch(() => {
+                            showHint('Browser membatasi layar penuh otomatis. Pilih "Tambah ke Layar Utama" di menu browser untuk mode penuh.');
+                        });
+                    }
+                } else {
+                    showHint('Pilih "Tambah ke Layar Utama" di menu browser Safari untuk mode layar penuh.');
+                }
+            } else {
+                if (cancelFullScreen) {
+                    cancelFullScreen.call(doc);
+                }
+            }
+        }
+
+        function updateFullscreenIcon() {
+            const isFullScreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+            const enterIcon = document.getElementById('icon-fs-enter');
+            const exitIcon = document.getElementById('icon-fs-exit');
+            if (enterIcon && exitIcon) {
+                enterIcon.style.display = isFullScreen ? 'none' : 'block';
+                exitIcon.style.display = isFullScreen ? 'block' : 'none';
+            }
+        }
+
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+        document.addEventListener('webkitfullscreenchange', updateFullscreenIcon);
 
         function toggleSettings(show) {
             document.getElementById('settings-modal').style.display = show ? 'flex' : 'none';
