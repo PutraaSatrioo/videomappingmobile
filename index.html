@@ -190,10 +190,10 @@
         .bow-stage.ready-to-fire #bow-svg {
             filter: drop-shadow(0 0 12px #ffffff) drop-shadow(0 0 28px #ffffff) drop-shadow(0 0 46px rgba(52, 211, 153, 0.95));
         }
-        /* Efek busur & panah bersinar terang sesaat lalu meredup mulus saat dilepas */
+        /* Efek busur bersinar lembut sesaat saat dilepas */
         
         .bow-stage.firing #bow-svg {
-            animation: bowGlowSurge 0.95s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: bowGlowSurge 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         
         @keyframes bowGlowSurge {
@@ -201,53 +201,54 @@
                 filter: drop-shadow(0 0 14px #ffffff) drop-shadow(0 0 32px #ffffff) drop-shadow(0 0 54px rgba(167, 243, 208, 0.95));
                 transform: scale(1.02);
             }
-            28% {
-                filter: drop-shadow(0 0 22px #ffffff) drop-shadow(0 0 52px #ffffff) drop-shadow(0 0 85px rgba(255, 255, 255, 1));
-                transform: scale(1.07);
+            30% {
+                filter: drop-shadow(0 0 20px #ffffff) drop-shadow(0 0 48px #ffffff) drop-shadow(0 0 80px rgba(255, 255, 255, 1));
+                transform: scale(1.06);
             }
             100% {
                 filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.85)) drop-shadow(0 0 16px rgba(255, 255, 255, 0.45));
                 transform: scale(1);
             }
         }
-        /* Transisi dasar anak panah (mulus saat muncul kembali) */
+        /* Transisi muncul kembali anak panah secara mulus setelah bola cahaya masuk */
         
         #arrow-group {
             opacity: 1;
             transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
         }
-        /* Saat anak panah sudah terpakai (tertangkap), tetap tersembunyi mulus */
+        /* Menahan opacity 0 sesaat selama bola cahaya meluncur menuju Tertangkap */
         
-        .bow-stage.arrow-spent #arrow-group {
-            opacity: 0;
+        .bow-stage.arrow-hidden #arrow-group {
+            opacity: 0 !important;
+            transition: none !important;
             pointer-events: none;
         }
-        /* Animasi anak panah melesat mulus ke depan, bersinar, dan memudar sambil berkilau */
+        /* Animasi anak panah berubah terang bercahaya dan menghilang perlahan saat dilepas */
         
         .bow-stage.firing #arrow-group {
-            animation: arrowSparkleFade 0.88s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
+            animation: arrowBrightFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards !important;
         }
         
-        @keyframes arrowSparkleFade {
+        @keyframes arrowBrightFade {
             0% {
                 transform: translateY(var(--release-y, 40px)) scale(1);
                 opacity: 1;
-                filter: drop-shadow(0 0 10px #ffffff) drop-shadow(0 0 22px #ffffff);
+                filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 18px #ffffff);
             }
-            25% {
-                transform: translateY(-28px) scale(1.04);
-                opacity: 1;
-                filter: drop-shadow(0 0 18px #ffffff) drop-shadow(0 0 42px #ffffff);
+            35% {
+                transform: translateY(-18px) scale(1.05);
+                opacity: 0.95;
+                filter: drop-shadow(0 0 22px #ffffff) drop-shadow(0 0 48px #ffffff) drop-shadow(0 0 75px #ffffff);
             }
-            65% {
-                transform: translateY(-88px) scale(0.96);
-                opacity: 0.55;
-                filter: drop-shadow(0 0 14px #ffffff) drop-shadow(0 0 30px rgba(167, 243, 208, 0.9));
+            70% {
+                transform: translateY(-65px) scale(1.02);
+                opacity: 0.45;
+                filter: drop-shadow(0 0 26px #ffffff) drop-shadow(0 0 56px #ffffff);
             }
             100% {
-                transform: translateY(-130px) scale(0.88);
+                transform: translateY(-95px) scale(0.96);
                 opacity: 0;
-                filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0));
+                filter: drop-shadow(0 0 30px #ffffff);
             }
         }
         /* Partikel kilau di sepanjang anak panah saat dilepas */
@@ -260,7 +261,7 @@
         }
         
         .bow-stage.firing .arrow-sparkle {
-            animation: arrowGlitter 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation: arrowGlitter 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
         }
         
         .bow-stage.firing .arrow-sparkle:nth-child(2) {
@@ -288,12 +289,12 @@
                 opacity: 0;
                 transform: scale(0.3) translate(0, 0);
             }
-            30% {
+            35% {
                 opacity: 1;
-                transform: scale(1.7) translate(var(--dx, 0px), var(--dy, 0px));
+                transform: scale(1.8) translate(var(--dx, 0px), var(--dy, 0px));
             }
-            65% {
-                opacity: 0.85;
+            70% {
+                opacity: 0.8;
                 transform: scale(0.9) translate(calc(var(--dx, 0px) * 1.6), calc(var(--dy, 0px) * 1.6));
             }
             100% {
@@ -321,7 +322,7 @@
         
         .bow-stage.pulling .pull-indicator,
         .bow-stage.firing .pull-indicator,
-        .bow-stage.arrow-spent .pull-indicator {
+        .bow-stage.arrow-hidden .pull-indicator {
             opacity: 0 !important;
         }
         
@@ -679,12 +680,12 @@
           <!-- Grup Anak Panah + Partikel Kilau Saat Dilepas -->
           <g id="arrow-group">
             <!-- Kilau Bintang di Sepanjang Anak Panah -->
-            <circle class="arrow-sparkle" cx="120" cy="42" r="3.2" style="--dx: 0px; --dy: -16px;" />
-            <circle class="arrow-sparkle" cx="105" cy="68" r="2.4" style="--dx: -16px; --dy: -8px;" />
-            <circle class="arrow-sparkle" cx="135" cy="72" r="2.4" style="--dx: 16px; --dy: -6px;" />
-            <circle class="arrow-sparkle" cx="110" cy="108" r="2.2" style="--dx: -14px; --dy: 6px;" />
-            <circle class="arrow-sparkle" cx="130" cy="116" r="2.6" style="--dx: 15px; --dy: 8px;" />
-            <circle class="arrow-sparkle" cx="120" cy="145" r="2.8" style="--dx: -6px; --dy: 14px;" />
+            <circle class="arrow-sparkle" cx="120" cy="42" r="3.4" style="--dx: 0px; --dy: -16px;" />
+            <circle class="arrow-sparkle" cx="105" cy="68" r="2.6" style="--dx: -16px; --dy: -8px;" />
+            <circle class="arrow-sparkle" cx="135" cy="72" r="2.6" style="--dx: 16px; --dy: -6px;" />
+            <circle class="arrow-sparkle" cx="110" cy="108" r="2.4" style="--dx: -14px; --dy: 6px;" />
+            <circle class="arrow-sparkle" cx="130" cy="116" r="2.8" style="--dx: 15px; --dy: 8px;" />
+            <circle class="arrow-sparkle" cx="120" cy="145" r="3.0" style="--dx: -6px; --dy: 14px;" />
 
             <!-- Batang Anak Panah -->
             <line x1="120" y1="46" x2="120" y2="178" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/>
@@ -828,7 +829,7 @@
         const bowTipLeft = document.getElementById('bow-tip-left');
         const bowTipRight = document.getElementById('bow-tip-right');
 
-        // Menggambar kelenturan busur & tali (moveArrow = false saat anak panah sedang dilepaskan)
+        // Menggambar kelenturan busur & tali
         function renderBowTension(pullPx, moveArrow = true) {
             const ratio = Math.min(1, pullPx / MAX_PULL);
             const tipShiftX = ratio * 7;
@@ -851,7 +852,7 @@
             }
         }
 
-        // Mengembalikan kelenturan tali busur secara mulus (smooth ease-out)
+        // Mengembalikan kelenturan tali busur secara mulus
         function animateStringRecoil(fromPull, moveArrow = true, durationMs = 260) {
             if (recoilFrameId) cancelAnimationFrame(recoilFrameId);
             const startTime = performance.now();
@@ -859,7 +860,6 @@
             function step(now) {
                 const elapsed = now - startTime;
                 const t = Math.min(1, elapsed / durationMs);
-                // Ease-out cubic untuk kembalinya tali busur yang halus
                 const easeOut = 1 - Math.pow(1 - t, 3);
                 const val = fromPull * (1 - easeOut);
 
@@ -890,10 +890,9 @@
             }
         }
 
-        // Event Listener Tarik Panah ke Bawah
+        // Event Listener Tarik Panah ke Bawah (Bisa terus ditarik kembali setelah panah muncul lagi)
         bowStage.addEventListener('pointerdown', (e) => {
-            if (isCatchingNow || isFiringAnim) return;
-            if (currentFauna && currentFauna.is_caught) return;
+            if (isFiringAnim) return;
 
             if (recoilFrameId) cancelAnimationFrame(recoilFrameId);
             isPulling = true;
@@ -911,7 +910,7 @@
             const deltaY = Math.max(0, e.clientY - pullStartY);
 
             if (!isObjectDetected) {
-                currentPull = Math.min(16, deltaY * 0.25);
+                currentPull = Math.min(18, deltaY * 0.25);
                 renderBowTension(currentPull, true);
                 return;
             }
@@ -920,6 +919,7 @@
             renderBowTension(currentPull, true);
 
             const targetText = document.getElementById('target-text');
+            const targetName = currentFauna ? currentFauna.name : 'Target';
 
             if (currentPull >= FIRE_THRESHOLD) {
                 bowStage.classList.add('ready-to-fire');
@@ -932,7 +932,7 @@
                 }
             } else {
                 bowStage.classList.remove('ready-to-fire');
-                targetText.innerText = `Tarik terus ke bawah (${currentFauna.name})`;
+                targetText.innerText = `Tarik terus ke bawah (${targetName})`;
                 targetText.classList.remove('fire-ready');
             }
         });
@@ -955,11 +955,8 @@
 
             if (pulledDistance >= FIRE_THRESHOLD) {
                 currentPull = 0;
-                // Simpan posisi tarikan terakhir sebagai titik awal melesatnya anak panah
                 arrowGroup.style.setProperty('--release-y', `${pulledDistance}px`);
-                // Kembalikan tali busur dengan mulus sementara anak panah mulai melesat
                 animateStringRecoil(pulledDistance, false, 240);
-                // Jalankan animasi tembak seketika + simpan ke database
                 playBowReleaseAndOrbAnimation();
                 catchFauna();
             } else {
@@ -1110,7 +1107,6 @@
             if (fauna.is_caught) {
                 addToCollection(fauna);
                 refreshActionState();
-                // Jika perubahan datang dari luar (bukan dari tarikan langsung yang sudah memutar animasi)
                 if (!fromLocalCatch && wasCaught === false && !isFiringAnim) {
                     arrowGroup.style.setProperty('--release-y', '16px');
                     playBowReleaseAndOrbAnimation();
@@ -1130,26 +1126,13 @@
             if (!currentFauna) return;
 
             targetText.classList.remove('fire-ready');
+            badge.innerText = currentFauna.island;
 
             if (currentFauna.is_caught) {
-                bowStage.classList.remove('detected');
-                if (!isFiringAnim) {
-                    bowStage.classList.add('arrow-spent');
-                    resetBowTension(false);
-                }
-
-                pillCatch.classList.remove('active-ready');
                 pillCaught.classList.add('active-caught');
-
-                badge.innerText = currentFauna.island;
-                targetText.innerText = '';
-                return;
+            } else {
+                pillCaught.classList.remove('active-caught');
             }
-
-            // Belum tertangkap / baru di-reset -> munculkan kembali anak panah secara mulus
-            bowStage.classList.remove('firing', 'arrow-spent');
-            pillCaught.classList.remove('active-caught');
-            badge.innerText = currentFauna.island;
 
             if (isObjectDetected) {
                 bowStage.classList.add('detected');
@@ -1162,7 +1145,7 @@
             }
         }
 
-        // Animasi busur bersinar sesaat, anak panah memudar sambil berkilau, lalu bola cahaya masuk ke Tertangkap
+        // 1. Panah berubah terang & memudar -> 2. Bola cahaya masuk ke Tertangkap -> 3. Panah muncul kembali
         function playBowReleaseAndOrbAnimation() {
             if (isFiringAnim) return;
             isFiringAnim = true;
@@ -1174,9 +1157,10 @@
             const colBtn = document.getElementById('btn-col');
 
             flash.classList.remove('flash-active');
-            bowStage.classList.remove('firing', 'arrow-spent');
+            bowStage.classList.remove('firing', 'arrow-hidden');
             void flash.offsetWidth;
 
+            // Tahap 1: Anak panah berubah terang bercahaya dan menghilang perlahan
             flash.classList.add('flash-active');
             bowStage.classList.add('firing');
 
@@ -1190,7 +1174,14 @@
             const endX = endRect.left + endRect.width / 2;
             const endY = endRect.top + endRect.height / 2;
 
-            // Munculkan bola cahaya putih tepat saat anak panah mulai melebur di titik sasaran
+            // Tahan kondisi tersembunyi sesaat setelah animasi memudar selesai (760ms)
+            setTimeout(() => {
+                bowStage.classList.add('arrow-hidden');
+                bowStage.classList.remove('firing');
+                arrowGroup.style.transform = 'translateY(0px)';
+            }, 760);
+
+            // Tahap 2: Munculkan bola cahaya putih & luncurkan masuk ke tulisan Tertangkap
             setTimeout(() => {
                 orb.style.transition = 'none';
                 orb.style.left = startX + 'px';
@@ -1199,16 +1190,17 @@
                 orb.style.opacity = '1';
 
                 requestAnimationFrame(() => {
-                    orb.style.transition = 'transform 0.28s cubic-bezier(0.22, 1, 0.36, 1)';
+                    orb.style.transition = 'transform 0.25s cubic-bezier(0.22, 1, 0.36, 1)';
                     orb.style.transform = 'translate(-50%, -50%) scale(1.12)';
 
                     setTimeout(() => {
-                        orb.style.transition = 'left 0.58s cubic-bezier(0.45, 0, 0.55, 1), top 0.58s cubic-bezier(0.45, 0, 0.55, 1), transform 0.58s ease-in, opacity 0.58s ease-in';
+                        orb.style.transition = 'left 0.55s cubic-bezier(0.45, 0, 0.55, 1), top 0.55s cubic-bezier(0.45, 0, 0.55, 1), transform 0.55s ease-in, opacity 0.55s ease-in';
                         orb.style.left = endX + 'px';
                         orb.style.top = endY + 'px';
                         orb.style.transform = 'translate(-50%, -50%) scale(0.15)';
                         orb.style.opacity = '0.2';
 
+                        // Tahap 3: Tepat ketika bola cahaya sudah masuk ke Tertangkap, panah muncul kembali!
                         setTimeout(() => {
                             orb.style.opacity = '0';
 
@@ -1218,27 +1210,19 @@
 
                             colBtn.classList.add('bump');
                             setTimeout(() => colBtn.classList.remove('bump'), 500);
-                        }, 540);
-                    }, 240);
+
+                            // Munculkan kembali anak panah secara mulus (fade in)
+                            bowStage.classList.remove('arrow-hidden');
+                            isFiringAnim = false;
+                            refreshActionState();
+                        }, 530);
+                    }, 220);
                 });
-            }, 220);
-
-            // Selesaikan siklus animasi panah (950ms) dengan transisi mulus ke kondisi terpakai
-            setTimeout(() => {
-                isFiringAnim = false;
-                bowStage.classList.remove('firing');
-                arrowGroup.style.transform = 'translateY(0px)';
-
-                if (currentFauna && currentFauna.is_caught) {
-                    bowStage.classList.add('arrow-spent');
-                }
-                refreshActionState();
-            }, 950);
+            }, 280);
         }
 
         async function catchFauna() {
             if (!db || isCatchingNow || !isObjectDetected) return;
-            if (currentFauna && currentFauna.is_caught) return;
 
             isCatchingNow = true;
 
@@ -1258,11 +1242,7 @@
             isCatchingNow = false;
 
             if (error) {
-                isFiringAnim = false;
-                bowStage.classList.remove('firing', 'arrow-spent');
                 alert('Gagal menangkap: ' + error.message);
-                resetBowTension(true);
-                refreshActionState();
             } else if (data) {
                 handleDatabaseUpdate(data, true);
             }
