@@ -11,7 +11,8 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -20,6 +21,7 @@
             overflow: hidden;
             height: 100vh;
             width: 100vw;
+            user-select: none;
         }
         
         #camera-feed {
@@ -31,12 +33,21 @@
             object-fit: cover;
             z-index: 1;
         }
+        /* Vignette halus agar garis putih busur panah selalu kontras */
+        
+        .vignette {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.45) 100%);
+            z-index: 2;
+            pointer-events: none;
+        }
         
         #capture-flash {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 70%);
-            z-index: 5;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 7;
             opacity: 0;
             pointer-events: none;
         }
@@ -47,89 +58,216 @@
         
         @keyframes flashAnim {
             0% {
-                opacity: 0.9;
+                opacity: 0.95;
             }
             100% {
                 opacity: 0;
             }
         }
-        /* Lingkaran Putih Bercahaya (Representasi Energi Hewan yang Tertangkap) */
+        /* Lingkaran Putih Bercahaya (Energi Hewan Tertangkap) */
         
         #captured-orb {
             position: fixed;
-            width: 72px;
-            height: 72px;
+            width: 68px;
+            height: 68px;
             border-radius: 50%;
-            background: radial-gradient(circle, #ffffff 25%, rgba(255, 255, 255, 0.85) 55%, rgba(167, 243, 208, 0) 75%);
-            box-shadow: 0 0 25px 10px rgba(255, 255, 255, 0.95), 0 0 55px 22px rgba(255, 255, 255, 0.65), 0 0 85px 35px rgba(52, 211, 153, 0.45);
+            background: radial-gradient(circle, #ffffff 30%, rgba(255, 255, 255, 0.85) 60%, rgba(255, 255, 255, 0) 75%);
+            box-shadow: 0 0 24px 10px rgba(255, 255, 255, 0.95), 0 0 55px 22px rgba(255, 255, 255, 0.7), 0 0 90px 35px rgba(186, 230, 253, 0.5);
             transform: translate(-50%, -50%) scale(0);
             opacity: 0;
             pointer-events: none;
-            z-index: 8;
+            z-index: 9;
         }
         
         .ui-layer {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
+            inset: 0;
+            z-index: 4;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            padding: 20px;
+            padding: 22px 22px 28px 22px;
             pointer-events: none;
         }
+        /* Bar Atas Minimalis */
         
         .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 8px;
             pointer-events: auto;
         }
         
-        .top-left {
+        .icon-btn-top {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.15s, background 0.2s;
         }
         
-        .badge {
-            background: rgba(15, 23, 42, 0.78);
+        .icon-btn-top:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .status-pill-top {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.6px;
+            color: rgba(255, 255, 255, 0.85);
+            background: rgba(0, 0, 0, 0.35);
             backdrop-filter: blur(8px);
-            padding: 8px 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 12px;
-            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
+        /* Area Tengah: Busur & Anak Panah Bercahaya */
         
-        .btn-settings {
-            background: rgba(30, 41, 59, 0.85);
-            color: #f8fafc;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
+        .bow-stage {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
             cursor: pointer;
         }
         
-        .btn-collection {
-            background: #f59e0b;
-            color: #000;
+        .bow-wrapper {
+            position: relative;
+            width: 240px;
+            height: 240px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        /* Efek cahaya putih lembut (glow) pada SVG busur & panah */
+        
+        #bow-svg {
+            width: 230px;
+            height: 230px;
+            overflow: visible;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.9)) drop-shadow(0 0 16px rgba(255, 255, 255, 0.55));
+            transition: filter 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
+            animation: floatBow 3.2s ease-in-out infinite;
+        }
+        
+        @keyframes floatBow {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-5px);
+            }
+        }
+        /* Saat objek oranye terdeteksi di kamera: busur siap menembak */
+        
+        .bow-stage.detected #bow-svg {
+            filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 22px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 36px rgba(167, 243, 208, 0.8));
+            transform: scale(1.06);
+        }
+        /* Animasi anak panah melesat ke atas saat ditangkap */
+        
+        .bow-stage.firing #arrow-group {
+            animation: shootArrow 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        
+        @keyframes shootArrow {
+            0% {
+                transform: translateY(14px);
+                opacity: 1;
+            }
+            70% {
+                transform: translateY(-110px) scale(0.85);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-140px) scale(0.5);
+                opacity: 0;
+            }
+        }
+        /* Animasi kelap-kelip partikel bintang di sekitar busur */
+        
+        .sparkle {
+            fill: #ffffff;
+            animation: twinkle 2.2s infinite ease-in-out;
+        }
+        
+        .sparkle:nth-child(2) {
+            animation-delay: 0.4s;
+        }
+        
+        .sparkle:nth-child(3) {
+            animation-delay: 0.9s;
+        }
+        
+        .sparkle:nth-child(4) {
+            animation-delay: 1.3s;
+        }
+        
+        .sparkle:nth-child(5) {
+            animation-delay: 1.7s;
+        }
+        
+        @keyframes twinkle {
+            0%,
+            100% {
+                opacity: 0.25;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.25);
+            }
+        }
+        
+        .subtle-guide {
+            margin-top: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.4px;
+            color: rgba(255, 255, 255, 0.85);
+            text-shadow: 0 1px 6px rgba(0, 0, 0, 0.85);
+            transition: opacity 0.25s;
+        }
+        /* Bilah Bawah (Menyerupai Referensi) */
+        
+        .bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            pointer-events: auto;
+            padding: 0 6px;
+        }
+        
+        .side-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            background: none;
             border: none;
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 12px;
+            color: #fff;
             cursor: pointer;
-            transition: transform 0.2s;
+            min-width: 52px;
+            transition: transform 0.15s;
         }
         
-        .btn-collection.bump {
+        .side-action:active {
+            transform: scale(0.9);
+        }
+        
+        .side-action.bump {
             animation: bumpScale 0.45s ease;
         }
         
@@ -144,170 +282,129 @@
                 transform: scale(1);
             }
         }
-        /* Bidikan Tengah & Status Deteksi */
         
-        .scanner-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        .reticle {
-            width: 210px;
-            height: 210px;
-            border: 3px dashed rgba(255, 255, 255, 0.45);
-            border-radius: 50%;
+        .side-icon-box {
+            width: 34px;
+            height: 34px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.25s ease;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
         }
         
-        .reticle-inner {
-            width: 12px;
-            height: 12px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            transition: all 0.25s ease;
-        }
-        /* Saat objek terdeteksi di kamera */
-        
-        .reticle.detected {
-            border: 4px solid #10b981;
-            box-shadow: 0 0 35px rgba(16, 185, 129, 0.75), inset 0 0 20px rgba(16, 185, 129, 0.25);
-            transform: scale(1.06);
-        }
-        
-        .reticle.detected .reticle-inner {
-            background: #10b981;
-            transform: scale(1.4);
-        }
-        /* Animasi reticle mengecil menyerap objek */
-        
-        .reticle.catching {
-            animation: absorbReticle 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            border-style: solid;
-            border-color: #ffffff;
-            box-shadow: 0 0 45px rgba(255, 255, 255, 0.95);
-        }
-        
-        @keyframes absorbReticle {
-            0% {
-                transform: scale(1.08);
-                opacity: 1;
-            }
-            50% {
-                transform: scale(0.45);
-                opacity: 0.9;
-            }
-            100% {
-                transform: scale(1);
-                opacity: 0.6;
-            }
-        }
-        
-        .target-label {
-            margin-top: 16px;
-            background: rgba(0, 0, 0, 0.75);
-            padding: 8px 16px;
-            border-radius: 14px;
-            font-size: 13px;
-            color: #e2e8f0;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.25s ease;
-        }
-        
-        .target-label.detected {
-            color: #6ee7b7;
-            border-color: #10b981;
-            background: rgba(6, 78, 59, 0.85);
-            font-weight: 600;
-        }
-        /* Tombol Tangkap / Tertangkap di Bawah */
-        
-        .bottom-bar {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            pointer-events: auto;
-            margin-bottom: 18px;
-        }
-        
-        #catch-btn {
-            min-width: 92px;
-            height: 92px;
-            border-radius: 50%;
-            background: radial-gradient(circle, #fbbf24 0%, #d97706 100%);
-            border: 5px solid #fff;
-            color: #000;
-            font-weight: 800;
+        .side-label {
             font-size: 11px;
-            box-shadow: 0 0 25px rgba(245, 158, 11, 0.85);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            line-height: 1.2;
-            padding: 0 14px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            color: rgba(255, 255, 255, 0.92);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
         }
+        /* Kapsul Tengah (Frosted Glass Pill seperti di foto) */
         
-        #catch-btn:active {
-            transform: scale(0.9);
-        }
-        
-        #catch-btn:disabled {
-            background: rgba(30, 41, 59, 0.85);
-            border-color: #475569;
-            color: #94a3b8;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        /* Tampilan tombol saat sudah tertangkap (bentuk pil bercahaya) */
-        
-        #catch-btn.caught-state {
-            width: auto;
-            min-width: 155px;
-            height: 54px;
+        .center-pill {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.22);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.32);
             border-radius: 999px;
-            background: linear-gradient(135deg, #065f46 0%, #0f172a 100%);
-            border: 2px solid #34d399;
-            color: #ecfdf5;
-            font-size: 13px;
-            letter-spacing: 0.8px;
-            box-shadow: 0 0 20px rgba(52, 211, 153, 0.45);
-        }
-        /* Efek denyut cahaya saat lingkaran putih masuk ke tulisan TERTANGKAP */
-        
-        #catch-btn.absorb-glow {
-            animation: absorbPulse 0.65s ease-out;
+            padding: 5px;
+            gap: 4px;
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35);
+            transition: all 0.3s ease;
         }
         
-        @keyframes absorbPulse {
+        .pill-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 68px;
+            height: 58px;
+            border-radius: 999px;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.65);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            gap: 3px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        /* Saat siap menangkap (aktif di sisi kiri kapsul) */
+        
+        .pill-item.active-ready {
+            background: rgba(255, 255, 255, 0.92);
+            color: #111827;
+            box-shadow: 0 2px 12px rgba(255, 255, 255, 0.5);
+        }
+        /* Saat sudah tertangkap (aktif di sisi kanan kapsul) */
+        
+        .pill-item.active-caught {
+            background: rgba(255, 255, 255, 0.95);
+            color: #064e3b;
+            box-shadow: 0 0 18px rgba(255, 255, 255, 0.75);
+        }
+        
+        .pill-item:disabled {
+            cursor: default;
+        }
+        /* Efek berpendar saat bola cahaya masuk ke tulisan Tertangkap */
+        
+        .center-pill.absorb-glow {
+            animation: pillAbsorb 0.65s ease-out;
+        }
+        
+        @keyframes pillAbsorb {
             0% {
                 transform: scale(1);
-                box-shadow: 0 0 20px rgba(52, 211, 153, 0.45);
             }
-            40% {
-                transform: scale(1.18);
-                background: #ffffff;
-                color: #064e3b;
-                border-color: #ffffff;
-                box-shadow: 0 0 45px 15px rgba(255, 255, 255, 0.95);
+            45% {
+                transform: scale(1.14);
+                background: rgba(255, 255, 255, 0.95);
+                box-shadow: 0 0 40px 14px rgba(255, 255, 255, 0.95);
             }
             100% {
                 transform: scale(1);
-                box-shadow: 0 0 22px rgba(52, 211, 153, 0.55);
             }
+        }
+        /* Tooltip Hint */
+        
+        #hint-toast {
+            position: fixed;
+            bottom: 108px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            color: #f8fafc;
+            padding: 10px 16px;
+            border-radius: 14px;
+            font-size: 12px;
+            text-align: center;
+            width: 82%;
+            max-width: 320px;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.25s ease;
+            z-index: 8;
+        }
+        
+        #hint-toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
         /* Modal Umum */
         
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(9, 13, 22, 0.94);
-            z-index: 10;
+            background: rgba(9, 13, 22, 0.92);
+            backdrop-filter: blur(12px);
+            z-index: 12;
             display: none;
             flex-direction: column;
             padding: 24px;
@@ -319,21 +416,33 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            border-bottom: 1px solid #334155;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
             padding-bottom: 12px;
         }
         
+        .btn-close-modal {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
         .card-item {
-            background: #1e293b;
-            border: 1px solid #f59e0b;
-            border-radius: 14px;
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 16px;
             padding: 16px;
             margin-bottom: 12px;
         }
         
         .card-item h3 {
-            color: #fbbf24;
+            color: #ffffff;
             margin-bottom: 4px;
+            font-size: 16px;
         }
         
         .card-item p {
@@ -356,7 +465,7 @@
         .form-group input {
             width: 100%;
             padding: 12px;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1px solid #475569;
             background: #1e293b;
             color: #fff;
@@ -365,7 +474,7 @@
         
         .form-group input:focus {
             outline: none;
-            border-color: #f59e0b;
+            border-color: #ffffff;
         }
         
         .btn-save {
@@ -373,19 +482,12 @@
             padding: 14px;
             border-radius: 12px;
             border: none;
-            background: #10b981;
-            color: #000;
+            background: #ffffff;
+            color: #0f172a;
             font-weight: 800;
             font-size: 15px;
             cursor: pointer;
             margin-top: 8px;
-        }
-        
-        .hint-text {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-top: 12px;
-            line-height: 1.5;
         }
     </style>
 </head>
@@ -393,30 +495,120 @@
 <body>
 
     <video id="camera-feed" autoplay playsinline></video>
+    <div class="vignette"></div>
     <canvas id="vision-canvas" width="80" height="80" style="display:none;"></canvas>
     <div id="capture-flash"></div>
 
-    <!-- Lingkaran putih bercahaya yang meluncur masuk ke tulisan TERTANGKAP -->
+    <!-- Bola cahaya putih yang terbang masuk ke tulisan Tertangkap -->
     <div id="captured-orb"></div>
 
+    <!-- Pesan Hint Singkat -->
+    <div id="hint-toast">Arahkan busur panah ke objek oranye di layar proyeksi, lalu ketuk panah atau tombol Tangkap.</div>
+
     <div class="ui-layer">
+        <!-- Bar Atas -->
         <div class="top-bar">
-            <div class="top-left">
-                <button class="btn-settings" onclick="toggleSettings(true)">Kredensial</button>
-                <div class="badge" id="status-badge">Menghubungkan...</div>
-            </div>
-            <button class="btn-collection" id="btn-col" onclick="toggleCollection(true)">Koleksi (<span id="count">0</span>)</button>
+            <button class="icon-btn-top" onclick="toggleSettings(true)" title="Kredensial Supabase">
+        <!-- Ikon pintu/pengaturan seperti referensi kiri atas -->
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+      </button>
+            <div class="status-pill-top" id="status-badge">Menghubungkan...</div>
         </div>
 
-        <div class="scanner-container">
-            <div class="reticle" id="reticle">
-                <div class="reticle-inner"></div>
+        <!-- Tengah: Ilustrasi Busur & Anak Panah Bercahaya (Tanpa Mata) -->
+        <div class="bow-stage" id="bow-stage" onclick="catchFauna()">
+            <div class="bow-wrapper">
+                <svg id="bow-svg" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Partikel Kilau Cahaya di Sekitar Busur -->
+          <circle class="sparkle" cx="62" cy="82" r="2.2" />
+          <circle class="sparkle" cx="76" cy="68" r="1.6" />
+          <circle class="sparkle" cx="54" cy="102" r="1.5" />
+          <circle class="sparkle" cx="174" cy="96" r="2.0" />
+          <circle class="sparkle" cx="164" cy="148" r="1.8" />
+          <circle class="sparkle" cx="82" cy="154" r="1.7" />
+
+          <!-- Lengkung Busur Bercahaya (Gaya Ilustrasi Garis Tangan) -->
+          <path d="M 32 146 C 68 104, 172 104, 208 146" stroke="#FFFFFF" stroke-width="3.2" stroke-linecap="round"/>
+          <path d="M 36 144 C 72 108, 168 108, 204 144" stroke="#FFFFFF" stroke-width="1.3" stroke-opacity="0.7" stroke-linecap="round"/>
+
+          <!-- Ujung Kait Busur Kiri & Kanan -->
+          <path d="M 32 146 C 24 146, 23 153, 30 153 C 35 153, 38 149, 41 148" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 208 146 C 216 146, 217 153, 210 153 C 205 153, 202 149, 199 148" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+
+          <!-- Tali Busur (Dinamis tertarik saat target terdeteksi) -->
+          <path id="bow-string" d="M 32 147 Q 120 147 208 147" stroke="#FFFFFF" stroke-width="1.8" stroke-opacity="0.85" stroke-linecap="round"/>
+
+          <!-- Grup Anak Panah (Batang + Mata Panah + Bulu Ekor) -->
+          <g id="arrow-group" style="transition: transform 0.25s ease;">
+            <!-- Batang Anak Panah -->
+            <line x1="120" y1="46" x2="120" y2="178" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round"/>
+
+            <!-- Ujung Mata Panah Runcing (Tanpa Mata) -->
+            <path d="M 108 64 L 120 42 L 132 64" stroke="#FFFFFF" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M 113 62 L 120 49 L 127 62" stroke="#FFFFFF" stroke-width="1.6" stroke-opacity="0.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+            <!-- Bulu Ekor Panah (Fletching) -->
+            <path d="M 120 142 L 109 152 M 120 142 L 131 152" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M 120 153 L 109 163 M 120 153 L 131 163" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M 120 164 L 109 174 M 120 164 L 131 174" stroke="#FFFFFF" stroke-width="2.6" stroke-linecap="round"/>
+          </g>
+        </svg>
             </div>
-            <div class="target-label" id="target-text">Memuat sistem...</div>
+            <div class="subtle-guide" id="target-text">Mencari target...</div>
         </div>
 
+        <!-- Bilah Bawah -->
         <div class="bottom-bar">
-            <button id="catch-btn" onclick="catchFauna()" disabled>CARI OBJEK</button>
+            <!-- Kiri: Koleksi (0/1) -->
+            <button class="side-action" id="btn-col" onclick="toggleCollection(true)">
+        <div class="side-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            <circle cx="12" cy="10" r="2" fill="#FFFFFF"/>
+          </svg>
+        </div>
+        <span class="side-label" id="count-label">0/1</span>
+      </button>
+
+            <!-- Tengah: Kapsul Frosted Glass (Tangkap / Tertangkap) -->
+            <div class="center-pill" id="center-pill">
+                <button class="pill-item" id="pill-catch" onclick="catchFauna()" disabled>
+          <!-- Ikon bidik/tangkap -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 3 21 3 21 9"/>
+            <polyline points="9 21 3 21 3 15"/>
+            <line x1="21" y1="3" x2="14" y2="10"/>
+            <line x1="3" y1="21" x2="10" y2="14"/>
+          </svg>
+          <span>Tangkap</span>
+        </button>
+
+                <button class="pill-item" id="pill-caught" disabled>
+          <!-- Ikon orb cahaya tertangkap -->
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <circle cx="12" cy="12" r="7"/>
+            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+          </svg>
+          <span>Tertangkap</span>
+        </button>
+            </div>
+
+            <!-- Kanan: Hint -->
+            <button class="side-action" onclick="showHint()">
+        <div class="side-icon-box">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <span class="side-label">Hint</span>
+      </button>
         </div>
     </div>
 
@@ -424,7 +616,7 @@
     <div id="settings-modal" class="modal-overlay">
         <div class="modal-header">
             <h2>Kredensial Supabase</h2>
-            <button class="btn-settings" onclick="toggleSettings(false)">Tutup</button>
+            <button class="btn-close-modal" onclick="toggleSettings(false)">Tutup</button>
         </div>
         <div class="form-group">
             <label for="input-url">Supabase Project URL</label>
@@ -439,17 +631,16 @@
             <input type="text" id="input-target" placeholder="harimau_sumatra" />
         </div>
         <button class="btn-save" onclick="saveCredentials()">Simpan & Hubungkan</button>
-        <p class="hint-text">Kredensial tersimpan otomatis di browser perangkat ini.</p>
     </div>
 
     <!-- Modal Laci Koleksi HP -->
     <div id="inventory-modal" class="modal-overlay">
         <div class="modal-header">
-            <h2>Koleksi Fauna Nusantara</h2>
-            <button class="btn-collection" onclick="toggleCollection(false)">Tutup</button>
+            <h2>Koleksi Fauna</h2>
+            <button class="btn-close-modal" onclick="toggleCollection(false)">Tutup</button>
         </div>
         <div id="collection-list">
-            <p style="color: #94a3b8;">Belum ada fauna yang tertangkap.</p>
+            <p style="color: #94a3b8; font-size: 13px;">Belum ada fauna yang tertangkap.</p>
         </div>
     </div>
 
@@ -464,6 +655,7 @@
         let currentFauna = null;
         let isObjectDetected = false;
         let isCatchingNow = false;
+        let hintTimeout = null;
 
         const videoEl = document.getElementById('camera-feed');
         const canvasEl = document.getElementById('vision-canvas');
@@ -526,8 +718,7 @@
                 }
             }
 
-            const matchRatio = matchedPixels / totalPixels;
-            const detectedNow = matchRatio >= 0.18;
+            const detectedNow = (matchedPixels / totalPixels) >= 0.18;
 
             if (detectedNow !== isObjectDetected) {
                 isObjectDetected = detectedNow;
@@ -596,7 +787,6 @@
 
             if (error) {
                 document.getElementById('status-badge').innerText = 'Koneksi Gagal';
-                document.getElementById('target-text').innerText = 'Cek Kredensial / Database';
                 return;
             }
 
@@ -622,111 +812,122 @@
         }
 
         function refreshActionState() {
-            const btn = document.getElementById('catch-btn');
+            const bowStage = document.getElementById('bow-stage');
+            const bowString = document.getElementById('bow-string');
+            const arrowGroup = document.getElementById('arrow-group');
+            const pillCatch = document.getElementById('pill-catch');
+            const pillCaught = document.getElementById('pill-caught');
             const badge = document.getElementById('status-badge');
             const targetText = document.getElementById('target-text');
-            const reticle = document.getElementById('reticle');
 
             if (!currentFauna) return;
 
             if (currentFauna.is_caught) {
-                btn.disabled = true;
-                btn.innerText = 'TERTANGKAP';
-                btn.classList.add('caught-state');
-                badge.innerText = 'Sudah Ditangkap';
-                targetText.classList.remove('detected');
-                reticle.classList.remove('detected');
-                targetText.innerText = `Arahkan ke ${currentFauna.name}`;
+                bowStage.classList.remove('detected');
+                bowString.setAttribute('d', 'M 32 147 Q 120 147 208 147');
+                arrowGroup.style.transform = 'translateY(0px)';
+
+                pillCatch.disabled = true;
+                pillCatch.classList.remove('active-ready');
+                pillCaught.classList.add('active-caught');
+
+                badge.innerText = currentFauna.island;
+                targetText.innerText = '';
                 return;
             }
 
-            btn.classList.remove('caught-state', 'absorb-glow');
-            badge.innerText = 'Aktif: ' + currentFauna.island;
+            // Belum tertangkap -> reset kapsul ke kiri
+            bowStage.classList.remove('firing');
+            pillCaught.classList.remove('active-caught');
+            badge.innerText = currentFauna.island;
 
             if (isObjectDetected) {
-                btn.disabled = false;
-                btn.innerText = 'TANGKAP';
-                reticle.classList.add('detected');
-                targetText.classList.add('detected');
-                targetText.innerText = `Terdeteksi: ${currentFauna.name}!`;
+                // Objek terdeteksi: tarik tali busur ke belakang & nyalakan tombol Tangkap
+                bowStage.classList.add('detected');
+                bowString.setAttribute('d', 'M 32 147 Q 120 176 208 147');
+                arrowGroup.style.transform = 'translateY(14px)';
+
+                pillCatch.disabled = false;
+                pillCatch.classList.add('active-ready');
+                targetText.innerText = `Ketuk panah untuk menangkap ${currentFauna.name}`;
             } else {
-                btn.disabled = true;
-                btn.innerText = 'CARI OBJEK';
-                reticle.classList.remove('detected');
-                targetText.classList.remove('detected');
-                targetText.innerText = `Arahkan kamera ke objek (${currentFauna.name})`;
+                // Objek belum terdeteksi
+                bowStage.classList.remove('detected');
+                bowString.setAttribute('d', 'M 32 147 Q 120 147 208 147');
+                arrowGroup.style.transform = 'translateY(0px)';
+
+                pillCatch.disabled = true;
+                pillCatch.classList.remove('active-ready');
+                targetText.innerText = `Arahkan panah ke ${currentFauna.name}`;
             }
         }
 
-        // Animasi lingkaran putih bercahaya muncul di tengah bidikan lalu masuk ke tulisan TERTANGKAP
+        // Animasi bola cahaya putih muncul dari panah lalu masuk ke tulisan Tertangkap
         function playOrbIntoCaughtAnimation() {
-            const reticle = document.getElementById('reticle');
+            const bowStage = document.getElementById('bow-stage');
             const flash = document.getElementById('capture-flash');
             const orb = document.getElementById('captured-orb');
-            const btn = document.getElementById('catch-btn');
+            const pillCaught = document.getElementById('pill-caught');
+            const centerPill = document.getElementById('center-pill');
             const colBtn = document.getElementById('btn-col');
 
-            // Efek kilatan singkat & getaran
             flash.classList.remove('flash-active');
-            reticle.classList.remove('catching');
             void flash.offsetWidth;
             flash.classList.add('flash-active');
-            reticle.classList.add('catching');
 
-            if (navigator.vibrate) navigator.vibrate([100, 50, 180]);
+            bowStage.classList.add('firing');
+            if (navigator.vibrate) navigator.vibrate([90, 45, 160]);
 
-            // Hitung titik awal (pusat reticle) dan titik tujuan (pusat tombol TERTANGKAP)
-            const startRect = reticle.getBoundingClientRect();
-            const endRect = btn.getBoundingClientRect();
+            const startRect = bowStage.getBoundingClientRect();
+            const endRect = pillCaught.getBoundingClientRect();
 
             const startX = startRect.left + startRect.width / 2;
-            const startY = startRect.top + startRect.height / 2;
+            const startY = startRect.top + startRect.height * 0.35;
             const endX = endRect.left + endRect.width / 2;
             const endY = endRect.top + endRect.height / 2;
 
-            // Munculkan lingkaran putih bercahaya di titik tengah kamera
+            // Munculkan lingkaran putih bercahaya
             orb.style.transition = 'none';
             orb.style.left = startX + 'px';
             orb.style.top = startY + 'px';
             orb.style.transform = 'translate(-50%, -50%) scale(0.2)';
             orb.style.opacity = '1';
 
-            // Tahap 1: Lingkaran membesar bercahaya terang di tempat objek ditangkap
             requestAnimationFrame(() => {
+                // Mengembang bercahaya di titik tembak
                 orb.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-                orb.style.transform = 'translate(-50%, -50%) scale(1.15)';
+                orb.style.transform = 'translate(-50%, -50%) scale(1.1)';
 
-                // Tahap 2: Lingkaran meluncur dan mengecil masuk tepat ke tulisan TERTANGKAP
+                // Meluncur masuk tepat ke kapsul "Tertangkap"
                 setTimeout(() => {
                     orb.style.transition = 'left 0.55s cubic-bezier(0.55, 0.055, 0.675, 0.19), top 0.55s cubic-bezier(0.55, 0.055, 0.675, 0.19), transform 0.55s ease-in, opacity 0.55s ease-in';
                     orb.style.left = endX + 'px';
                     orb.style.top = endY + 'px';
                     orb.style.transform = 'translate(-50%, -50%) scale(0.15)';
-                    orb.style.opacity = '0.2';
+                    orb.style.opacity = '0.25';
 
-                    // Saat lingkaran menyentuh tulisan TERTANGKAP, tombol berpendar menyerap energi
                     setTimeout(() => {
                         orb.style.opacity = '0';
-                        reticle.classList.remove('catching');
+                        bowStage.classList.remove('firing');
 
-                        btn.classList.remove('absorb-glow');
-                        void btn.offsetWidth;
-                        btn.classList.add('absorb-glow');
+                        centerPill.classList.remove('absorb-glow');
+                        void centerPill.offsetWidth;
+                        centerPill.classList.add('absorb-glow');
 
                         colBtn.classList.add('bump');
                         setTimeout(() => colBtn.classList.remove('bump'), 500);
                     }, 520);
-                }, 240);
+                }, 230);
             });
         }
 
         async function catchFauna() {
             if (!db || isCatchingNow || !isObjectDetected) return;
-            isCatchingNow = true;
+            if (currentFauna && currentFauna.is_caught) return;
 
-            const btn = document.getElementById('catch-btn');
-            btn.disabled = true;
-            btn.innerText = '...';
+            isCatchingNow = true;
+            const pillCatch = document.getElementById('pill-catch');
+            pillCatch.disabled = true;
 
             const {
                 data,
@@ -765,10 +966,10 @@
         }
 
         function renderCollection() {
-            document.getElementById('count').innerText = myCollection.length;
+            document.getElementById('count-label').innerText = `${myCollection.length}/1`;
             const listEl = document.getElementById('collection-list');
             if (myCollection.length === 0) {
-                listEl.innerHTML = '<p style="color: #94a3b8;">Belum ada fauna yang tertangkap.</p>';
+                listEl.innerHTML = '<p style="color: #94a3b8; font-size: 13px;">Belum ada fauna yang tertangkap.</p>';
                 return;
             }
             listEl.innerHTML = myCollection.map(item => `
@@ -777,6 +978,15 @@
           <p>Asal Wilayah: Pulau ${item.island}</p>
         </div>
       `).join('');
+        }
+
+        function showHint() {
+            const toast = document.getElementById('hint-toast');
+            toast.classList.add('show');
+            clearTimeout(hintTimeout);
+            hintTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
         }
 
         function toggleSettings(show) {
