@@ -180,15 +180,15 @@
                 transform: translateY(-5px);
             }
         }
-        /* Saat objek terdeteksi di kamera */
+        /* Saat objek terdeteksi di kamera (ubah glow menjadi ungu/galaxy yang selaras) */
         
         .bow-stage.detected #bow-svg {
-            filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 22px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 36px rgba(167, 243, 208, 0.8));
+            filter: drop-shadow(0 0 8px #ffffff) drop-shadow(0 0 22px rgba(255, 255, 255, 0.95)) drop-shadow(0 0 36px rgba(139, 92, 246, 0.8));
         }
         /* Saat tarikan sudah mencapai batas siap tembak */
         
         .bow-stage.ready-to-fire #bow-svg {
-            filter: drop-shadow(0 0 12px #ffffff) drop-shadow(0 0 28px #ffffff) drop-shadow(0 0 46px rgba(52, 211, 153, 0.95));
+            filter: drop-shadow(0 0 12px #ffffff) drop-shadow(0 0 28px #ffffff) drop-shadow(0 0 46px rgba(167, 139, 250, 0.95));
         }
         /* Efek busur bersinar lembut sesaat saat dilepas */
         
@@ -198,7 +198,7 @@
         
         @keyframes bowGlowSurge {
             0% {
-                filter: drop-shadow(0 0 14px #ffffff) drop-shadow(0 0 32px #ffffff) drop-shadow(0 0 54px rgba(167, 243, 208, 0.95));
+                filter: drop-shadow(0 0 14px #ffffff) drop-shadow(0 0 32px #ffffff) drop-shadow(0 0 54px rgba(139, 92, 246, 0.95));
                 transform: scale(1.02);
             }
             30% {
@@ -382,7 +382,8 @@
         }
         
         .subtle-guide.fire-ready {
-            color: #6ee7b7;
+            color: #a78bfa;
+            /* warna galaxy / violet */
         }
         /* Bilah Bawah */
         
@@ -485,8 +486,10 @@
         
         .pill-item.active-caught {
             background: rgba(255, 255, 255, 0.95);
-            color: #064e3b;
-            box-shadow: 0 0 18px rgba(255, 255, 255, 0.75);
+            color: #2e1065;
+            /* Deep Indigo */
+            box-shadow: 0 0 18px rgba(139, 92, 246, 0.75);
+            /* Glow ungu */
         }
         
         .center-pill.absorb-glow {
@@ -639,7 +642,7 @@
     <div id="captured-orb"></div>
 
     <!-- Pesan Hint Singkat -->
-    <div id="hint-toast">Arahkan busur panah ke objek oranye di layar, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!</div>
+    <div id="hint-toast">Arahkan busur panah ke harimau galaxy, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!</div>
 
     <div class="ui-layer">
         <!-- Bar Atas -->
@@ -890,7 +893,7 @@
             }
         }
 
-        // Event Listener Tarik Panah ke Bawah (Bisa terus ditarik kembali setelah panah muncul lagi)
+        // Event Listener Tarik Panah ke Bawah
         bowStage.addEventListener('pointerdown', (e) => {
             if (isFiringAnim) return;
 
@@ -1018,12 +1021,18 @@
                     else h = ((r - g) / d + 4) * 60;
                 }
 
-                if (h >= 8 && h <= 44 && s >= 0.42 && v >= 0.35) {
+                // --- PEMBARUAN PENDETEKSIAN (WARNA GALAXY) ---
+                // Mengubah parameter pendeteksian agar mencari warna Ungu, Indigo, Violet, dan Neon Blue (Galaxy) dari Harimau:
+                // Hue: 215° - 325° (Merentang dari Biru tua, Indigo, Violet, Ungu hingga Magenta)
+                // Saturation: minimal 24% (karena saturasi layar neon galaxy di kamera cukup tinggi)
+                // Value: minimal 20% (agar terekam meski kontras tinggi dengan latar)
+                if (h >= 215 && h <= 325 && s >= 0.24 && v >= 0.20) {
                     matchedPixels++;
                 }
             }
 
-            const detectedNow = (matchedPixels / totalPixels) >= 0.18;
+            const matchRatio = matchedPixels / totalPixels;
+            const detectedNow = matchRatio >= 0.09; // Toleransi area 9% karena warna galaxy menyebar di loreng tubuh harimau
 
             if (detectedNow !== isObjectDetected) {
                 isObjectDetected = detectedNow;
@@ -1137,15 +1146,14 @@
             if (isObjectDetected) {
                 bowStage.classList.add('detected');
                 pillCatch.classList.add('active-ready');
-                targetText.innerText = `Tarik panah ke bawah (${currentFauna.name})`;
+                targetText.innerText = `Tarik panah ke bawah untuk menangkap ${currentFauna.name}!`;
             } else {
                 bowStage.classList.remove('detected');
                 pillCatch.classList.remove('active-ready');
-                targetText.innerText = `Arahkan panah ke ${currentFauna.name}`;
+                targetText.innerText = `Arahkan panah ke Harimau Galaxy (${currentFauna.name})`;
             }
         }
 
-        // 1. Panah berubah terang & memudar -> 2. Bola cahaya masuk ke Tertangkap -> 3. Panah muncul kembali
         function playBowReleaseAndOrbAnimation() {
             if (isFiringAnim) return;
             isFiringAnim = true;
