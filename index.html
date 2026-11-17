@@ -35,23 +35,37 @@
         #capture-flash {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle, rgba(251, 191, 36, 0.85) 0%, rgba(255, 255, 255, 0.95) 100%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 70%);
             z-index: 5;
             opacity: 0;
             pointer-events: none;
         }
         
         .flash-active {
-            animation: flashAnim 0.65s ease-out forwards;
+            animation: flashAnim 0.55s ease-out forwards;
         }
         
         @keyframes flashAnim {
             0% {
-                opacity: 0.95;
+                opacity: 0.9;
             }
             100% {
                 opacity: 0;
             }
+        }
+        /* Lingkaran Putih Bercahaya (Representasi Energi Hewan yang Tertangkap) */
+        
+        #captured-orb {
+            position: fixed;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ffffff 25%, rgba(255, 255, 255, 0.85) 55%, rgba(167, 243, 208, 0) 75%);
+            box-shadow: 0 0 25px 10px rgba(255, 255, 255, 0.95), 0 0 55px 22px rgba(255, 255, 255, 0.65), 0 0 85px 35px rgba(52, 211, 153, 0.45);
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 8;
         }
         
         .ui-layer {
@@ -116,7 +130,7 @@
         }
         
         .btn-collection.bump {
-            animation: bumpScale 0.4s ease;
+            animation: bumpScale 0.45s ease;
         }
         
         @keyframes bumpScale {
@@ -124,7 +138,7 @@
                 transform: scale(1);
             }
             50% {
-                transform: scale(1.25);
+                transform: scale(1.22);
             }
             100% {
                 transform: scale(1);
@@ -170,24 +184,27 @@
             background: #10b981;
             transform: scale(1.4);
         }
-        /* Animasi saat tombol tangkap ditekan */
+        /* Animasi reticle mengecil menyerap objek */
         
         .reticle.catching {
-            animation: spinCatch 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            animation: absorbReticle 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
             border-style: solid;
-            border-color: #fbbf24;
-            box-shadow: 0 0 50px rgba(251, 191, 36, 0.9);
+            border-color: #ffffff;
+            box-shadow: 0 0 45px rgba(255, 255, 255, 0.95);
         }
         
-        @keyframes spinCatch {
+        @keyframes absorbReticle {
             0% {
-                transform: scale(1.1) rotate(0deg);
+                transform: scale(1.08);
+                opacity: 1;
             }
-            60% {
-                transform: scale(0.35) rotate(240deg);
+            50% {
+                transform: scale(0.45);
+                opacity: 0.9;
             }
             100% {
-                transform: scale(1) rotate(360deg);
+                transform: scale(1);
+                opacity: 0.6;
             }
         }
         
@@ -209,59 +226,7 @@
             background: rgba(6, 78, 59, 0.85);
             font-weight: 600;
         }
-        /* Banner Notifikasi Berhasil Tertangkap */
-        
-        #catch-banner {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.5);
-            background: linear-gradient(135deg, #065f46 0%, #0f172a 100%);
-            border: 2px solid #34d399;
-            border-radius: 20px;
-            padding: 22px 28px;
-            text-align: center;
-            z-index: 6;
-            opacity: 0;
-            pointer-events: none;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.85);
-            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            width: 82%;
-            max-width: 320px;
-        }
-        
-        #catch-banner.show {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-        }
-        
-        #catch-banner .check-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #10b981;
-            color: #000;
-            font-size: 26px;
-            font-weight: 900;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 10px auto;
-        }
-        
-        #catch-banner h3 {
-            color: #34d399;
-            font-size: 16px;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-        
-        #catch-banner p {
-            color: #f8fafc;
-            font-size: 14px;
-            font-weight: 600;
-        }
-        /* Tombol Tangkap Bawah */
+        /* Tombol Tangkap / Tertangkap di Bawah */
         
         .bottom-bar {
             display: flex;
@@ -269,12 +234,12 @@
             align-items: center;
             gap: 12px;
             pointer-events: auto;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
         }
         
         #catch-btn {
-            width: 88px;
-            height: 88px;
+            min-width: 92px;
+            height: 92px;
             border-radius: 50%;
             background: radial-gradient(circle, #fbbf24 0%, #d97706 100%);
             border: 5px solid #fff;
@@ -283,9 +248,9 @@
             font-size: 11px;
             box-shadow: 0 0 25px rgba(245, 158, 11, 0.85);
             cursor: pointer;
-            transition: transform 0.15s, background 0.25s;
+            transition: all 0.3s ease;
             line-height: 1.2;
-            padding: 4px;
+            padding: 0 14px;
         }
         
         #catch-btn:active {
@@ -298,6 +263,43 @@
             color: #94a3b8;
             box-shadow: none;
             cursor: not-allowed;
+        }
+        /* Tampilan tombol saat sudah tertangkap (bentuk pil bercahaya) */
+        
+        #catch-btn.caught-state {
+            width: auto;
+            min-width: 155px;
+            height: 54px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #065f46 0%, #0f172a 100%);
+            border: 2px solid #34d399;
+            color: #ecfdf5;
+            font-size: 13px;
+            letter-spacing: 0.8px;
+            box-shadow: 0 0 20px rgba(52, 211, 153, 0.45);
+        }
+        /* Efek denyut cahaya saat lingkaran putih masuk ke tulisan TERTANGKAP */
+        
+        #catch-btn.absorb-glow {
+            animation: absorbPulse 0.65s ease-out;
+        }
+        
+        @keyframes absorbPulse {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 20px rgba(52, 211, 153, 0.45);
+            }
+            40% {
+                transform: scale(1.18);
+                background: #ffffff;
+                color: #064e3b;
+                border-color: #ffffff;
+                box-shadow: 0 0 45px 15px rgba(255, 255, 255, 0.95);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 22px rgba(52, 211, 153, 0.55);
+            }
         }
         /* Modal Umum */
         
@@ -391,16 +393,11 @@
 <body>
 
     <video id="camera-feed" autoplay playsinline></video>
-    <!-- Canvas tersembunyi untuk analisis computer vision kamera -->
     <canvas id="vision-canvas" width="80" height="80" style="display:none;"></canvas>
     <div id="capture-flash"></div>
 
-    <!-- Notifikasi Berhasil Menangkap -->
-    <div id="catch-banner">
-        <div class="check-icon">&#10003;</div>
-        <h3>BERHASIL DITANGKAP!</h3>
-        <p id="banner-fauna-name">Harimau Sumatera</p>
-    </div>
+    <!-- Lingkaran putih bercahaya yang meluncur masuk ke tulisan TERTANGKAP -->
+    <div id="captured-orb"></div>
 
     <div class="ui-layer">
         <div class="top-bar">
@@ -491,7 +488,6 @@
             }
         }
 
-        // Analisis Computer Vision pada area tengah reticle
         function analyzeCameraFrame() {
             if (videoEl.readyState < 2) return;
 
@@ -525,14 +521,13 @@
                     else h = ((r - g) / d + 4) * 60;
                 }
 
-                // Deteksi warna Oranye Terang kubus target dari layar Unity (Hue 8°–44°, Saturasi & Kecerahan cukup)
                 if (h >= 8 && h <= 44 && s >= 0.42 && v >= 0.35) {
                     matchedPixels++;
                 }
             }
 
             const matchRatio = matchedPixels / totalPixels;
-            const detectedNow = matchRatio >= 0.18; // Minimal 18% area lingkaran berisi objek
+            const detectedNow = matchRatio >= 0.18;
 
             if (detectedNow !== isObjectDetected) {
                 isObjectDetected = detectedNow;
@@ -616,17 +611,16 @@
 
             if (fauna.is_caught) {
                 addToCollection(fauna);
+                refreshActionState();
                 if (justCaughtByUser || wasCaught === false) {
-                    playCatchAnimation(fauna.name);
+                    playOrbIntoCaughtAnimation();
                 }
             } else {
                 removeFromCollection(fauna.id);
+                refreshActionState();
             }
-
-            refreshActionState();
         }
 
-        // Mengatur tampilan Reticle & Tombol berdasarkan deteksi kamera + status database
         function refreshActionState() {
             const btn = document.getElementById('catch-btn');
             const badge = document.getElementById('status-badge');
@@ -638,59 +632,92 @@
             if (currentFauna.is_caught) {
                 btn.disabled = true;
                 btn.innerText = 'TERTANGKAP';
+                btn.classList.add('caught-state');
                 badge.innerText = 'Sudah Ditangkap';
                 targetText.classList.remove('detected');
                 reticle.classList.remove('detected');
-                targetText.innerText = `${currentFauna.name} sudah tertangkap!`;
+                targetText.innerText = `Arahkan ke ${currentFauna.name}`;
                 return;
             }
 
+            btn.classList.remove('caught-state', 'absorb-glow');
             badge.innerText = 'Aktif: ' + currentFauna.island;
 
             if (isObjectDetected) {
-                // Objek terlihat di kamera -> Buka kunci tombol tangkap
                 btn.disabled = false;
                 btn.innerText = 'TANGKAP';
                 reticle.classList.add('detected');
                 targetText.classList.add('detected');
                 targetText.innerText = `Terdeteksi: ${currentFauna.name}!`;
             } else {
-                // Objek tidak ada di kamera -> Kunci tombol tangkap
                 btn.disabled = true;
                 btn.innerText = 'CARI OBJEK';
                 reticle.classList.remove('detected');
                 targetText.classList.remove('detected');
-                targetText.innerText = `Arahkan kamera ke kotak oranye (${currentFauna.name})`;
+                targetText.innerText = `Arahkan kamera ke objek (${currentFauna.name})`;
             }
         }
 
-        function playCatchAnimation(faunaName) {
+        // Animasi lingkaran putih bercahaya muncul di tengah bidikan lalu masuk ke tulisan TERTANGKAP
+        function playOrbIntoCaughtAnimation() {
             const reticle = document.getElementById('reticle');
             const flash = document.getElementById('capture-flash');
-            const banner = document.getElementById('catch-banner');
+            const orb = document.getElementById('captured-orb');
+            const btn = document.getElementById('catch-btn');
             const colBtn = document.getElementById('btn-col');
 
-            document.getElementById('banner-fauna-name').innerText = `${faunaName} masuk ke koleksimu!`;
-
-            reticle.classList.remove('catching');
+            // Efek kilatan singkat & getaran
             flash.classList.remove('flash-active');
-            void reticle.offsetWidth;
-            reticle.classList.add('catching');
+            reticle.classList.remove('catching');
+            void flash.offsetWidth;
             flash.classList.add('flash-active');
+            reticle.classList.add('catching');
 
-            banner.classList.add('show');
-            colBtn.classList.add('bump');
+            if (navigator.vibrate) navigator.vibrate([100, 50, 180]);
 
-            if (navigator.vibrate) navigator.vibrate([120, 60, 220]);
+            // Hitung titik awal (pusat reticle) dan titik tujuan (pusat tombol TERTANGKAP)
+            const startRect = reticle.getBoundingClientRect();
+            const endRect = btn.getBoundingClientRect();
 
-            setTimeout(() => {
-                reticle.classList.remove('catching');
-                colBtn.classList.remove('bump');
-            }, 700);
+            const startX = startRect.left + startRect.width / 2;
+            const startY = startRect.top + startRect.height / 2;
+            const endX = endRect.left + endRect.width / 2;
+            const endY = endRect.top + endRect.height / 2;
 
-            setTimeout(() => {
-                banner.classList.remove('show');
-            }, 2400);
+            // Munculkan lingkaran putih bercahaya di titik tengah kamera
+            orb.style.transition = 'none';
+            orb.style.left = startX + 'px';
+            orb.style.top = startY + 'px';
+            orb.style.transform = 'translate(-50%, -50%) scale(0.2)';
+            orb.style.opacity = '1';
+
+            // Tahap 1: Lingkaran membesar bercahaya terang di tempat objek ditangkap
+            requestAnimationFrame(() => {
+                orb.style.transition = 'transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+                orb.style.transform = 'translate(-50%, -50%) scale(1.15)';
+
+                // Tahap 2: Lingkaran meluncur dan mengecil masuk tepat ke tulisan TERTANGKAP
+                setTimeout(() => {
+                    orb.style.transition = 'left 0.55s cubic-bezier(0.55, 0.055, 0.675, 0.19), top 0.55s cubic-bezier(0.55, 0.055, 0.675, 0.19), transform 0.55s ease-in, opacity 0.55s ease-in';
+                    orb.style.left = endX + 'px';
+                    orb.style.top = endY + 'px';
+                    orb.style.transform = 'translate(-50%, -50%) scale(0.15)';
+                    orb.style.opacity = '0.2';
+
+                    // Saat lingkaran menyentuh tulisan TERTANGKAP, tombol berpendar menyerap energi
+                    setTimeout(() => {
+                        orb.style.opacity = '0';
+                        reticle.classList.remove('catching');
+
+                        btn.classList.remove('absorb-glow');
+                        void btn.offsetWidth;
+                        btn.classList.add('absorb-glow');
+
+                        colBtn.classList.add('bump');
+                        setTimeout(() => colBtn.classList.remove('bump'), 500);
+                    }, 520);
+                }, 240);
+            });
         }
 
         async function catchFauna() {
