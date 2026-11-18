@@ -824,8 +824,8 @@
         const DEFAULT_HINT_MSG = 'Arahkan busur panah ke harimau galaxy, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!';
         const DETECTION_MODEL_URL = './track/harimau_sumatra.onnx';
         const MODEL_INPUT_SIZE = 320;
-        const DETECTION_CONFIDENCE = 0.35;
-        const TARGET_CENTER_TOLERANCE = 0.25;
+        const DETECTION_CONFIDENCE = 0.25;
+        const TARGET_CENTER_TOLERANCE = 0.45;
 
         let db = null;
         let myCollection = [];
@@ -837,6 +837,8 @@
         let hintTimeout = null;
         let detectorSession = null;
         let isAnalyzingFrame = false;
+        let modelLoadFailed = false;
+        let consecutiveNoDetect = 0;
 
         // Variabel interaksi tarik panah ke bawah
         let isPulling = false;
@@ -1005,7 +1007,9 @@
                 try {
                     await loadDetectorModel();
                 } catch (modelError) {
-                    // Kamera tetap dapat dibuka agar izin dan pratinjau kamera tidak bergantung pada model.
+                    modelLoadFailed = true;
+                    console.warn('Model gagal dimuat, kamera tetap dibuka:', modelError.message);
+                    document.getElementById('target-text').innerText = 'Model belum tersedia. Jalankan training dulu.';
                 }
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -1015,7 +1019,12 @@
                 });
                 videoEl.srcObject = stream;
                 videoEl.onloadedmetadata = () => {
-                    setInterval(analyzeCameraFrame, 180);
+                    if (!modelLoadFailed) {
+                        setInterval(analyzeCameraFrame, 180);
+                        console.info('Deteksi kamera aktif setiap 180ms.');
+                    } else {
+                        console.warn('Loop deteksi tidak dimulai karena model gagal dimuat.');
+                    }
                 };
             } catch (err) {
                 console.error('Gagal membuka kamera:', err);
@@ -1058,30 +1067,98 @@
                 }
 
                 const inputTensor = new ort.Tensor('float32', input, [1, 3, size, size]);
-                const outputs = await detectorSession.run({ [detectorSession.inputNames[0]]: inputTensor });
+                const outputs = await detectorSession.run({
+                    [detectorSession.inputNames[0]]: inputTensor
+                });
                 const output = outputs[detectorSession.outputNames[0]];
                 const detections = output.data;
                 const dims = output.dims;
-                const valuesPerDetection = dims[dims.length - 1];
                 let detectedNow = false;
 
-                // Model die diekspor dengan nms=True menghasilkan baris [x1,y1,x2,y2,confidence,class].
-                if (valuesPerDetection === 6) {
-                    for (let i = 0; i + 5 < detections.length; i += 6) {
-                        const confidence = detections[i + 4];
-                        const classId = Math.round(detections[i + 5]);
+                // Format NMS (nms=True): output [N, 6] -> [x1,y1,x2,y2,conf,class]
+                if (dims.length === 2 && dims[1] === 6) {
+                    const numDet = dims[0];
+                    for (let i = 0; i < numDet; i++) {
+                        const base = i * 6;
+                        const confidence = detections[base + 4];
+                        const classId = Math.round(detections[base + 5]);
                         if (confidence < DETECTION_CONFIDENCE || classId !== 0) continue;
 
-                        const centerX = (detections[i] + detections[i + 2]) / (2 * size);
-                        const centerY = (detections[i + 1] + detections[i + 3]) / (2 * size);
+                        const centerX = (detections[base] + detections[base + 2]) / (2 * size);
+                        const centerY = (detections[base + 1] + detections[base + 3]) / (2 * size);
+                        console.log(`[NMS] Deteksi: conf=${confidence.toFixed(3)}, cls=${classId}, cx=${centerX.toFixed(2)}, cy=${centerY.toFixed(2)}`);
                         if (Math.abs(centerX - 0.5) <= TARGET_CENTER_TOLERANCE &&
                             Math.abs(centerY - 0.5) <= TARGET_CENTER_TOLERANCE) {
                             detectedNow = true;
                             break;
                         }
                     }
+                }
+                // Format NMS (nms=True) batch: output [1, N, 6]
+                else if (dims.length === 3 && dims[0] === 1 && dims[2] === 6) {
+                    const numDet = dims[1];
+                    for (let i = 0; i < numDet; i++) {
+                        const base = i * 6;
+                        const confidence = detections[base + 4];
+                        const classId = Math.round(detections[base + 5]);
+                        if (confidence < DETECTION_CONFIDENCE || classId !== 0) continue;
+
+                        const centerX = (detections[base] + detections[base + 2]) / (2 * size);
+                        const centerY = (detections[base + 1] + detections[base + 3]) / (2 * size);
+                        console.log(`[NMS-Batch] Deteksi: conf=${confidence.toFixed(3)}, cls=${classId}, cx=${centerX.toFixed(2)}, cy=${centerY.toFixed(2)}`);
+                        if (Math.abs(centerX - 0.5) <= TARGET_CENTER_TOLERANCE &&
+                            Math.abs(centerY - 0.5) <= TARGET_CENTER_TOLERANCE) {
+                            detectedNow = true;
+                            break;
+                        }
+                    }
+                }
+                // Format RAW YOLOv8/11: output [1, (4+nc), N] — transposed
+                else if (dims.length === 3 && dims[0] === 1 && dims[1] > dims[2]) {
+                    // dims = [1, 5, 8400] for 1 class => 4 box + 1 class score
+                    const numClasses = dims[1] - 4;
+                    const numPreds = dims[2];
+                    for (let i = 0; i < numPreds; i++) {
+                        const cx = detections[0 * numPreds + i] / size;
+                        const cy = detections[1 * numPreds + i] / size;
+                        const w = detections[2 * numPreds + i] / size;
+                        const h = detections[3 * numPreds + i] / size;
+                        // Untuk kelas 0 (harimau), skor ada di baris ke-4
+                        const score = detections[4 * numPreds + i];
+                        if (score < DETECTION_CONFIDENCE) continue;
+                        console.log(`[RAW] Deteksi: score=${score.toFixed(3)}, cx=${cx.toFixed(2)}, cy=${cy.toFixed(2)}, w=${w.toFixed(2)}, h=${h.toFixed(2)}`);
+                        if (Math.abs(cx - 0.5) <= TARGET_CENTER_TOLERANCE &&
+                            Math.abs(cy - 0.5) <= TARGET_CENTER_TOLERANCE) {
+                            detectedNow = true;
+                            break;
+                        }
+                    }
+                }
+                // Format RAW: output [1, N, (4+nc)]
+                else if (dims.length === 3 && dims[0] === 1 && dims[2] > 4) {
+                    const numPreds = dims[1];
+                    const valuesPerDet = dims[2];
+                    for (let i = 0; i < numPreds; i++) {
+                        const base = i * valuesPerDet;
+                        const cx = detections[base] / size;
+                        const cy = detections[base + 1] / size;
+                        const score = detections[base + 4];
+                        if (score < DETECTION_CONFIDENCE) continue;
+                        console.log(`[RAW2] Deteksi: score=${score.toFixed(3)}, cx=${cx.toFixed(2)}, cy=${cy.toFixed(2)}`);
+                        if (Math.abs(cx - 0.5) <= TARGET_CENTER_TOLERANCE &&
+                            Math.abs(cy - 0.5) <= TARGET_CENTER_TOLERANCE) {
+                            detectedNow = true;
+                            break;
+                        }
+                    }
                 } else {
-                    throw new Error(`Format output model tidak didukung: ${dims.join('x')}. Pastikan ekspor memakai nms=True.`);
+                    console.warn(`Format output model tidak dikenali: dims=[${dims.join(',')}]. Coba ekspor ulang dengan nms=True.`);
+                }
+
+                if (detectedNow) {
+                    consecutiveNoDetect = 0;
+                } else {
+                    consecutiveNoDetect++;
                 }
 
                 updateDetectionState(detectedNow);

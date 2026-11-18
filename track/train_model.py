@@ -54,7 +54,7 @@ def check_dataset() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Latih model deteksi fauna dengan Ultralytics YOLO.")
     parser.add_argument("--weights", default="yolo11n.pt", help="Checkpoint awal Ultralytics (default: yolo11n.pt).")
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=150)
     parser.add_argument("--imgsz", type=int, default=320)
     parser.add_argument("--batch", type=int, default=8)
     parser.add_argument("--device", default=None, help="Contoh: 0 untuk GPU pertama, atau cpu.")
@@ -85,6 +85,18 @@ def main() -> None:
         "project": str(HERE / "runs"),
         "name": "harimau_sumatra",
         "exist_ok": True,
+        # Augmentasi agresif untuk dataset kecil
+        "augment": True,
+        "hsv_h": 0.02,
+        "hsv_s": 0.7,
+        "hsv_v": 0.5,
+        "degrees": 15,
+        "translate": 0.2,
+        "scale": 0.6,
+        "fliplr": 0.5,
+        "mosaic": 1.0,
+        "mixup": 0.3,
+        "copy_paste": 0.3,
     }
     if args.device:
         options["device"] = args.device
