@@ -827,6 +827,12 @@
         const DETECTION_CONFIDENCE = 0.25;
         const TARGET_CENTER_TOLERANCE = 0.45;
 
+        // Deteksi warna HSV untuk harimau galaxy (ungu/biru/magenta)
+        // Jika model ONNX tidak tersedia, fallback ke deteksi warna.
+        const COLOR_DETECT_SIZE = 160; // resolusi analisis warna
+        const COLOR_MIN_RATIO = 0.03;  // minimal 3% piksel berwarna galaxy
+        const COLOR_CENTER_WEIGHT = 0.6; // area tengah harus punya konsentrasi warna
+
         let db = null;
         let myCollection = [];
         let currentTargetId = localStorage.getItem('xr_target_id') || DEFAULT_TARGET;
@@ -838,7 +844,9 @@
         let detectorSession = null;
         let isAnalyzingFrame = false;
         let modelLoadFailed = false;
+        let useColorFallback = false;
         let consecutiveNoDetect = 0;
+        let consecutiveColorDetect = 0;
 
         // Variabel interaksi tarik panah ke bawah
         let isPulling = false;
@@ -1008,8 +1016,8 @@
                     await loadDetectorModel();
                 } catch (modelError) {
                     modelLoadFailed = true;
-                    console.warn('Model gagal dimuat, kamera tetap dibuka:', modelError.message);
-                    document.getElementById('target-text').innerText = 'Model belum tersedia. Jalankan training dulu.';
+                    useColorFallback = true;
+                    console.warn('Model ONNX gagal dimuat, menggunakan deteksi warna sebagai fallback.', modelError.message);
                 }
                 const stream = await navigator.mediaDevices.getUserMedia({
                     video: {
@@ -1019,11 +1027,12 @@
                 });
                 videoEl.srcObject = stream;
                 videoEl.onloadedmetadata = () => {
-                    if (!modelLoadFailed) {
-                        setInterval(analyzeCameraFrame, 180);
-                        console.info('Deteksi kamera aktif setiap 180ms.');
+                    if (useColorFallback) {
+                        setInterval(analyzeColorFrame, 200);
+                        console.info('Deteksi warna aktif (fallback, setiap 200ms).');
                     } else {
-                        console.warn('Loop deteksi tidak dimulai karena model gagal dimuat.');
+                        setInterval(analyzeCameraFrame, 180);
+                        console.info('Deteksi ONNX aktif setiap 180ms.');
                     }
                 };
             } catch (err) {
@@ -1174,6 +1183,108 @@
             if (detectedNow === isObjectDetected) return;
             isObjectDetected = detectedNow;
             if (!isPulling && !isFiringAnim) refreshActionState();
+        }
+
+        // ===== DETEKSI WARNA (FALLBACK tanpa model ONNX) =====
+        // Harimau galaxy punya warna ungu/biru/magenta unik.
+        // Kita konversi piksel ke HSV dan hitung berapa banyak piksel
+        // yang masuk range warna galaxy di area tengah kamera.
+
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            const d = max - min;
+            let h = 0, s = max === 0 ? 0 : d / max, v = max;
+            if (d !== 0) {
+                if (max === r) h = ((g - b) / d + 6) % 6;
+                else if (max === g) h = (b - r) / d + 2;
+                else h = (r - g) / d + 4;
+                h *= 60;
+            }
+            return [h, s, v];
+        }
+
+        function isGalaxyColor(r, g, b) {
+            const [h, s, v] = rgbToHsv(r, g, b);
+            // Rentang warna harimau galaxy:
+            // Ungu/violet: H 240-310, S > 0.15, V > 0.12
+            // Biru-ungu:   H 210-240, S > 0.2, V > 0.12
+            // Magenta:     H 280-340, S > 0.15, V > 0.12
+            // Cyan galaxy: H 170-210, S > 0.2, V > 0.15
+            if (v < 0.10) return false; // terlalu gelap
+            if (s < 0.12) return false; // terlalu abu-abu
+
+            // Ungu/violet/magenta range (H: 210-330)
+            if (h >= 200 && h <= 330 && s >= 0.15 && v >= 0.10) return true;
+            // Cyan-biru galaxy (H: 170-210)
+            if (h >= 160 && h < 200 && s >= 0.20 && v >= 0.15) return true;
+
+            return false;
+        }
+
+        function analyzeColorFrame() {
+            if (videoEl.readyState < 2 || isAnalyzingFrame) return;
+            isAnalyzingFrame = true;
+
+            try {
+                const size = COLOR_DETECT_SIZE;
+                canvasEl.width = size;
+                canvasEl.height = size;
+                ctx.drawImage(videoEl, 0, 0, size, size);
+                const rgba = ctx.getImageData(0, 0, size, size).data;
+
+                let totalPixels = 0;
+                let galaxyPixels = 0;
+                let centerGalaxyPixels = 0;
+                let centerTotalPixels = 0;
+
+                // Definisi area tengah (40% tengah dari kedua sumbu)
+                const centerMargin = 0.3;
+                const centerMinX = Math.floor(size * centerMargin);
+                const centerMaxX = Math.floor(size * (1 - centerMargin));
+                const centerMinY = Math.floor(size * centerMargin);
+                const centerMaxY = Math.floor(size * (1 - centerMargin));
+
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        const idx = (y * size + x) * 4;
+                        const r = rgba[idx], g = rgba[idx + 1], b = rgba[idx + 2];
+                        totalPixels++;
+
+                        const isCenter = x >= centerMinX && x <= centerMaxX &&
+                                         y >= centerMinY && y <= centerMaxY;
+                        if (isCenter) centerTotalPixels++;
+
+                        if (isGalaxyColor(r, g, b)) {
+                            galaxyPixels++;
+                            if (isCenter) centerGalaxyPixels++;
+                        }
+                    }
+                }
+
+                const globalRatio = galaxyPixels / totalPixels;
+                const centerRatio = centerTotalPixels > 0 ? centerGalaxyPixels / centerTotalPixels : 0;
+
+                // Deteksi berhasil jika cukup banyak piksel galaxy, terutama di tengah
+                const detectedNow = globalRatio >= COLOR_MIN_RATIO && centerRatio >= COLOR_CENTER_WEIGHT * COLOR_MIN_RATIO;
+
+                if (detectedNow) {
+                    consecutiveColorDetect++;
+                    // Butuh 2 frame berturut-turut untuk menghindari false positive
+                    if (consecutiveColorDetect >= 2) {
+                        updateDetectionState(true);
+                    }
+                } else {
+                    consecutiveColorDetect = 0;
+                    updateDetectionState(false);
+                }
+
+            } catch (error) {
+                console.error('Analisis warna gagal:', error);
+                updateDetectionState(false);
+            } finally {
+                isAnalyzingFrame = false;
+            }
         }
 
         function loadCredentials() {
