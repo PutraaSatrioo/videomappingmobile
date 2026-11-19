@@ -9,7 +9,7 @@ track/dataset/
   labels/val/*.txt
 
 Each label file has one row per object: ``class_id x_center y_center width height``
-with normalized coordinates (0..1). For this project class 0 is the tiger.
+with normalized coordinates (0..1). Class 0 is the Sumatran tiger and class 1 is the Sumatran rhino.
 """
 
 from __future__ import annotations
@@ -50,6 +50,21 @@ def check_dataset() -> None:
         if not label.is_file():
             raise SystemExit(f"Label tidak ditemukan untuk {image.relative_to(HERE)}: {label.relative_to(HERE)}")
 
+    for split in ("train", "val"):
+        class_ids = set()
+        for label in (DATASET / "labels" / split).glob("*.txt"):
+            for row in label.read_text(encoding="utf-8").splitlines():
+                if row.strip():
+                    class_ids.add(row.split()[0])
+        missing_classes = {"0", "1"} - class_ids
+        if missing_classes:
+            names = {"0": "harimau_sumatra", "1": "badak_sumatra"}
+            missing_names = ", ".join(names[class_id] for class_id in sorted(missing_classes))
+            raise SystemExit(
+                f"Dataset {split} belum memiliki anotasi untuk: {missing_names}. "
+                "Tambahkan foto dan kotak YOLO untuk kedua kelas sebelum training."
+            )
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Latih model deteksi fauna dengan Ultralytics YOLO.")
@@ -67,7 +82,8 @@ def main() -> None:
         "train: images/train\n"
         "val: images/val\n"
         "names:\n"
-        "  0: harimau_sumatra\n",
+        "  0: harimau_sumatra\n"
+        "  1: badak_sumatra\n",
         encoding="utf-8",
     )
 
@@ -83,7 +99,7 @@ def main() -> None:
         "imgsz": args.imgsz,
         "batch": args.batch,
         "project": str(HERE / "runs"),
-        "name": "harimau_sumatra",
+        "name": "badak_harimau",
         "exist_ok": True,
         # Augmentasi agresif untuk dataset kecil
         "augment": True,
@@ -103,10 +119,12 @@ def main() -> None:
     result = model.train(**options)
     best_weights = Path(result.save_dir) / "weights" / "best.pt"
     exported_model = YOLO(str(best_weights)).export(format="onnx", imgsz=args.imgsz, nms=True)
-    browser_model = HERE / "harimau_sumatra.onnx"
+    browser_model = HERE / "badak_harimau.onnx"
     shutil.copy2(exported_model, browser_model)
+    shutil.copy2(exported_model, HERE / "harimau_sumatra.onnx")
     print(f"Model training: {best_weights}")
     print(f"Model browser: {browser_model}")
+    print(f"Model fallback: {HERE / 'harimau_sumatra.onnx'}")
 
 
 if __name__ == "__main__":

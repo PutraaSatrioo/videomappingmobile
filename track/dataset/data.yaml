@@ -4,3 +4,4 @@ train: images/train
 val: images/val
 names:
   0: harimau_sumatra
+  1: badak_sumatra

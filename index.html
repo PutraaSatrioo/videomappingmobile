@@ -38,6 +38,8 @@
             z-index: 1;
         }
         
+        #detection-labels { position: fixed; inset: 0; z-index: 3; pointer-events: none; }
+        .detection-label { position: absolute; padding: 5px 8px; border-radius: 6px; background: rgba(15,23,42,.88); color: white; font-size: 14px; font-weight: 700; border: 1px solid #38bdf8; transform: translate(-50%, -100%); white-space: nowrap; }
         .vignette {
             position: fixed;
             inset: 0;
@@ -637,6 +639,7 @@
 <body>
 
     <video id="camera-feed" autoplay playsinline></video>
+    <div id="detection-labels"></div>
     <div class="vignette"></div>
     <canvas id="vision-canvas" width="320" height="320" style="display:none;"></canvas>
     <div id="capture-flash"></div>
@@ -822,9 +825,9 @@
         const DEFAULT_KEY = 'sb_publishable_CRMI4bAg4seaGDWpY-CfEw_pqKDzO1z';
         const DEFAULT_TARGET = 'harimau_sumatra';
         const DEFAULT_HINT_MSG = 'Arahkan busur panah ke harimau galaxy, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!';
-        const DETECTION_MODEL_URL = './track/harimau_sumatra.onnx';
+        const DETECTION_MODEL_URL = './track/badak_harimau.onnx';
         const MODEL_INPUT_SIZE = 320;
-        const DETECTION_CONFIDENCE = 0.25;
+        const DETECTION_CONFIDENCE = 0.45;
         const TARGET_CENTER_TOLERANCE = 0.45;
 
         // Deteksi warna HSV untuk harimau galaxy (ungu/biru/magenta)
@@ -1050,7 +1053,7 @@
                     executionProviders: ['wasm'],
                     graphOptimizationLevel: 'all'
                 });
-                console.info('Model deteksi harimau siap.');
+                console.info('Model deteksi badak dan harimau siap.');
             } catch (error) {
                 document.getElementById('target-text').innerText = 'Model belum tersedia. Jalankan training terlebih dahulu.';
                 console.error(`Tidak bisa memuat model ${DETECTION_MODEL_URL}:`, error);
@@ -1063,122 +1066,51 @@
             isAnalyzingFrame = true;
             try {
                 const size = MODEL_INPUT_SIZE;
-                canvasEl.width = size;
-                canvasEl.height = size;
+                canvasEl.width = size; canvasEl.height = size;
                 ctx.drawImage(videoEl, 0, 0, size, size);
                 const rgba = ctx.getImageData(0, 0, size, size).data;
-                const planeSize = size * size;
-                const input = new Float32Array(planeSize * 3);
+                const planeSize = size * size, input = new Float32Array(planeSize * 3);
                 for (let i = 0; i < planeSize; i++) {
                     input[i] = rgba[i * 4] / 255;
                     input[planeSize + i] = rgba[i * 4 + 1] / 255;
                     input[planeSize * 2 + i] = rgba[i * 4 + 2] / 255;
                 }
-
-                const inputTensor = new ort.Tensor('float32', input, [1, 3, size, size]);
-                const outputs = await detectorSession.run({
-                    [detectorSession.inputNames[0]]: inputTensor
-                });
-                const output = outputs[detectorSession.outputNames[0]];
-                const detections = output.data;
-                const dims = output.dims;
-                let detectedNow = false;
-
-                // Format NMS (nms=True): output [N, 6] -> [x1,y1,x2,y2,conf,class]
-                if (dims.length === 2 && dims[1] === 6) {
-                    const numDet = dims[0];
-                    for (let i = 0; i < numDet; i++) {
-                        const base = i * 6;
-                        const confidence = detections[base + 4];
-                        const classId = Math.round(detections[base + 5]);
-                        if (confidence < DETECTION_CONFIDENCE || classId !== 0) continue;
-
-                        const centerX = (detections[base] + detections[base + 2]) / (2 * size);
-                        const centerY = (detections[base + 1] + detections[base + 3]) / (2 * size);
-                        console.log(`[NMS] Deteksi: conf=${confidence.toFixed(3)}, cls=${classId}, cx=${centerX.toFixed(2)}, cy=${centerY.toFixed(2)}`);
-                        if (Math.abs(centerX - 0.5) <= TARGET_CENTER_TOLERANCE &&
-                            Math.abs(centerY - 0.5) <= TARGET_CENTER_TOLERANCE) {
-                            detectedNow = true;
-                            break;
-                        }
-                    }
+                const outputs = await detectorSession.run({ [detectorSession.inputNames[0]]: new ort.Tensor('float32', input, [1, 3, size, size]) });
+                const output = outputs[detectorSession.outputNames[0]], d = output.data, dims = output.dims;
+                const rows = dims.length === 2 && dims[1] === 6 ? dims[0] : dims.length === 3 && dims[0] === 1 && dims[2] === 6 ? dims[1] : 0;
+                const found = [];
+                for (let i = 0; i < rows; i++) {
+                    const base = i * 6, conf = d[base + 4], cls = Math.round(d[base + 5]);
+                    if (conf < DETECTION_CONFIDENCE || (cls !== 0 && cls !== 1)) continue;
+                    const x1 = d[base], y1 = d[base + 1], x2 = d[base + 2], y2 = d[base + 3];
+                    found.push({ cls, conf, cx: (x1+x2)/(2*size), cy: (y1+y2)/(2*size), x1:x1/size, y1:y1/size, x2:x2/size, y2:y2/size });
                 }
-                // Format NMS (nms=True) batch: output [1, N, 6]
-                else if (dims.length === 3 && dims[0] === 1 && dims[2] === 6) {
-                    const numDet = dims[1];
-                    for (let i = 0; i < numDet; i++) {
-                        const base = i * 6;
-                        const confidence = detections[base + 4];
-                        const classId = Math.round(detections[base + 5]);
-                        if (confidence < DETECTION_CONFIDENCE || classId !== 0) continue;
-
-                        const centerX = (detections[base] + detections[base + 2]) / (2 * size);
-                        const centerY = (detections[base + 1] + detections[base + 3]) / (2 * size);
-                        console.log(`[NMS-Batch] Deteksi: conf=${confidence.toFixed(3)}, cls=${classId}, cx=${centerX.toFixed(2)}, cy=${centerY.toFixed(2)}`);
-                        if (Math.abs(centerX - 0.5) <= TARGET_CENTER_TOLERANCE &&
-                            Math.abs(centerY - 0.5) <= TARGET_CENTER_TOLERANCE) {
-                            detectedNow = true;
-                            break;
-                        }
-                    }
-                }
-                // Format RAW YOLOv8/11: output [1, (4+nc), N] — transposed
-                else if (dims.length === 3 && dims[0] === 1 && dims[1] > dims[2]) {
-                    // dims = [1, 5, 8400] for 1 class => 4 box + 1 class score
-                    const numClasses = dims[1] - 4;
-                    const numPreds = dims[2];
-                    for (let i = 0; i < numPreds; i++) {
-                        const cx = detections[0 * numPreds + i] / size;
-                        const cy = detections[1 * numPreds + i] / size;
-                        const w = detections[2 * numPreds + i] / size;
-                        const h = detections[3 * numPreds + i] / size;
-                        // Untuk kelas 0 (harimau), skor ada di baris ke-4
-                        const score = detections[4 * numPreds + i];
-                        if (score < DETECTION_CONFIDENCE) continue;
-                        console.log(`[RAW] Deteksi: score=${score.toFixed(3)}, cx=${cx.toFixed(2)}, cy=${cy.toFixed(2)}, w=${w.toFixed(2)}, h=${h.toFixed(2)}`);
-                        if (Math.abs(cx - 0.5) <= TARGET_CENTER_TOLERANCE &&
-                            Math.abs(cy - 0.5) <= TARGET_CENTER_TOLERANCE) {
-                            detectedNow = true;
-                            break;
-                        }
-                    }
-                }
-                // Format RAW: output [1, N, (4+nc)]
-                else if (dims.length === 3 && dims[0] === 1 && dims[2] > 4) {
-                    const numPreds = dims[1];
-                    const valuesPerDet = dims[2];
-                    for (let i = 0; i < numPreds; i++) {
-                        const base = i * valuesPerDet;
-                        const cx = detections[base] / size;
-                        const cy = detections[base + 1] / size;
-                        const score = detections[base + 4];
-                        if (score < DETECTION_CONFIDENCE) continue;
-                        console.log(`[RAW2] Deteksi: score=${score.toFixed(3)}, cx=${cx.toFixed(2)}, cy=${cy.toFixed(2)}`);
-                        if (Math.abs(cx - 0.5) <= TARGET_CENTER_TOLERANCE &&
-                            Math.abs(cy - 0.5) <= TARGET_CENTER_TOLERANCE) {
-                            detectedNow = true;
-                            break;
-                        }
-                    }
-                } else {
-                    console.warn(`Format output model tidak dikenali: dims=[${dims.join(',')}]. Coba ekspor ulang dengan nms=True.`);
-                }
-
-                if (detectedNow) {
-                    consecutiveNoDetect = 0;
-                } else {
-                    consecutiveNoDetect++;
-                }
-
+                renderDetectionLabels(found);
+                const targetMap = { 'harimau_sumatra': 0, 'badak_sumatra': 1 };
+                const targetClassId = targetMap[currentTargetId] ?? (currentFauna && currentFauna.id === 'badak_sumatra' ? 1 : 0);
+                const detectedNow = found.some(o => o.cls === targetClassId && Math.abs(o.cx-.5) <= TARGET_CENTER_TOLERANCE && Math.abs(o.cy-.5) <= TARGET_CENTER_TOLERANCE);
+                consecutiveNoDetect = detectedNow ? 0 : consecutiveNoDetect + 1;
                 updateDetectionState(detectedNow);
             } catch (error) {
                 console.error('Inferensi kamera gagal:', error);
-                updateDetectionState(false);
-            } finally {
-                isAnalyzingFrame = false;
-            }
+                renderDetectionLabels([]); updateDetectionState(false);
+            } finally { isAnalyzingFrame = false; }
         }
 
+        function renderDetectionLabels(items) {
+            const layer = document.getElementById('detection-labels');
+            layer.replaceChildren();
+            const vw = window.innerWidth, vh = window.innerHeight;
+            const scale = Math.max(vw / (videoEl.videoWidth || vw), vh / (videoEl.videoHeight || vh));
+            const ox = (vw - (videoEl.videoWidth || vw) * scale) / 2, oy = (vh - (videoEl.videoHeight || vh) * scale) / 2;
+            for (const item of items) {
+                const label = document.createElement('div'); label.className = 'detection-label';
+                label.textContent = `${item.cls === 0 ? 'Harimau Sumatra' : 'Badak Sumatra'} ${(item.conf*100).toFixed(0)}%`;
+                label.style.left = `${ox + item.cx * (videoEl.videoWidth || vw) * scale}px`;
+                label.style.top = `${Math.max(26, oy + item.y1 * (videoEl.videoHeight || vh) * scale)}px`;
+                layer.appendChild(label);
+            }
+        }
         function updateDetectionState(detectedNow) {
             if (detectedNow === isObjectDetected) return;
             isObjectDetected = detectedNow;
