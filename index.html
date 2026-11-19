@@ -1125,18 +1125,9 @@
         }
 
         function renderDetectionLabels(items) {
+            // Label persentase melayang dihilangkan agar tampilan kamera bersih
             const layer = document.getElementById('detection-labels');
-            layer.replaceChildren();
-            const vw = window.innerWidth, vh = window.innerHeight;
-            const scale = Math.max(vw / (videoEl.videoWidth || vw), vh / (videoEl.videoHeight || vh));
-            const ox = (vw - (videoEl.videoWidth || vw) * scale) / 2, oy = (vh - (videoEl.videoHeight || vh) * scale) / 2;
-            for (const item of items) {
-                const label = document.createElement('div'); label.className = 'detection-label';
-                label.textContent = `${item.cls === 0 ? 'Harimau Sumatra' : 'Badak Sumatra'} ${(item.conf*100).toFixed(0)}%`;
-                label.style.left = `${ox + item.cx * (videoEl.videoWidth || vw) * scale}px`;
-                label.style.top = `${Math.max(26, oy + item.y1 * (videoEl.videoHeight || vh) * scale)}px`;
-                layer.appendChild(label);
-            }
+            if (layer) layer.replaceChildren();
         }
         function updateDetectionState(detectedNow, centerAnimal = null) {
             const animalChanged = (currentCenterAnimal?.cls !== centerAnimal?.cls) || (!currentCenterAnimal !== !centerAnimal);
@@ -1350,10 +1341,10 @@
 
             targetText.classList.remove('fire-ready');
 
-            // 1. Nama hewan di tengah atas menyesuaikan hewan yang ada di tengah layar
+            // 1. Nama hewan di tengah atas menyesuaikan hewan yang ada di tengah layar (statis di UI, tanpa emot)
             if (currentCenterAnimal) {
                 const centerName = currentCenterAnimal.cls === 0 ? 'Harimau Sumatra' : 'Badak Sumatra';
-                badge.innerText = `🎯 ${centerName}`;
+                badge.innerText = centerName;
                 badge.style.background = isObjectDetected ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)';
                 badge.style.borderColor = isObjectDetected ? 'rgba(52, 211, 153, 0.85)' : 'rgba(248, 113, 113, 0.85)';
                 badge.style.color = '#fff';
