@@ -135,6 +135,7 @@
             padding: 6px 14px;
             border-radius: 999px;
             border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.25s ease;
         }
         /* Area Tengah: Busur & Anak Panah Interaktif */
         
@@ -828,7 +829,9 @@
         const DETECTION_MODEL_URL = './track/badak_harimau.onnx';
         const MODEL_INPUT_SIZE = 320;
         const DETECTION_CONFIDENCE = 0.45;
-        const TARGET_CENTER_TOLERANCE = 0.45;
+        const TARGET_CENTER_TOLERANCE = 0.20; // Hanya hewan di area tengah layar (reticle busur)
+
+        let currentCenterAnimal = null; // Menyimpan hewan yang berada pas di tengah layar
 
         // Deteksi warna HSV untuk harimau galaxy (ungu/biru/magenta)
         // Jika model ONNX tidak tersedia, fallback ke deteksi warna.
@@ -1085,15 +1088,39 @@
                     const x1 = d[base], y1 = d[base + 1], x2 = d[base + 2], y2 = d[base + 3];
                     found.push({ cls, conf, cx: (x1+x2)/(2*size), cy: (y1+y2)/(2*size), x1:x1/size, y1:y1/size, x2:x2/size, y2:y2/size });
                 }
-                renderDetectionLabels(found);
+                // Saring hanya hewan yang berada di tengah layar (area bidikan reticle panah)
+                let centerCandidate = null;
+                let minCenterDist = Infinity;
+
+                for (const item of found) {
+                    const dx = item.cx - 0.5;
+                    const dy = item.cy - 0.5;
+                    const dist = Math.hypot(dx, dy);
+
+                    // Hanya pertimbangkan jika benar-benar di tengah layar
+                    if (Math.abs(dx) <= TARGET_CENTER_TOLERANCE && Math.abs(dy) <= TARGET_CENTER_TOLERANCE) {
+                        if (dist < minCenterDist) {
+                            minCenterDist = dist;
+                            centerCandidate = item;
+                        }
+                    }
+                }
+
+                // Hanya render label untuk hewan di tengah layar (abaikan hewan di samping)
+                renderDetectionLabels(centerCandidate ? [centerCandidate] : []);
+
+                // Target misi aktif
                 const targetMap = { 'harimau_sumatra': 0, 'badak_sumatra': 1 };
                 const targetClassId = targetMap[currentTargetId] ?? (currentFauna && currentFauna.id === 'badak_sumatra' ? 1 : 0);
-                const detectedNow = found.some(o => o.cls === targetClassId && Math.abs(o.cx-.5) <= TARGET_CENTER_TOLERANCE && Math.abs(o.cy-.5) <= TARGET_CENTER_TOLERANCE);
-                consecutiveNoDetect = detectedNow ? 0 : consecutiveNoDetect + 1;
-                updateDetectionState(detectedNow);
+
+                // Trigger HANYA jika hewan DI TENGAH cocok dengan target misi!
+                // Jika hewan di samping (atau hewan lain di tengah), trigger tidak akan aktif.
+                const isTargetInCenter = centerCandidate !== null && centerCandidate.cls === targetClassId;
+                consecutiveNoDetect = isTargetInCenter ? 0 : consecutiveNoDetect + 1;
+                updateDetectionState(isTargetInCenter, centerCandidate);
             } catch (error) {
                 console.error('Inferensi kamera gagal:', error);
-                renderDetectionLabels([]); updateDetectionState(false);
+                renderDetectionLabels([]); updateDetectionState(false, null);
             } finally { isAnalyzingFrame = false; }
         }
 
@@ -1111,10 +1138,14 @@
                 layer.appendChild(label);
             }
         }
-        function updateDetectionState(detectedNow) {
-            if (detectedNow === isObjectDetected) return;
+        function updateDetectionState(detectedNow, centerAnimal = null) {
+            const animalChanged = (currentCenterAnimal?.cls !== centerAnimal?.cls) || (!currentCenterAnimal !== !centerAnimal);
+            const stateChanged = (detectedNow !== isObjectDetected);
             isObjectDetected = detectedNow;
-            if (!isPulling && !isFiringAnim) refreshActionState();
+            currentCenterAnimal = centerAnimal;
+            if ((stateChanged || animalChanged) && !isPulling && !isFiringAnim) {
+                refreshActionState();
+            }
         }
 
         // ===== DETEKSI WARNA (FALLBACK tanpa model ONNX) =====
@@ -1318,7 +1349,20 @@
             if (!currentFauna) return;
 
             targetText.classList.remove('fire-ready');
-            badge.innerText = currentFauna.island;
+
+            // 1. Nama hewan di tengah atas menyesuaikan hewan yang ada di tengah layar
+            if (currentCenterAnimal) {
+                const centerName = currentCenterAnimal.cls === 0 ? 'Harimau Sumatra' : 'Badak Sumatra';
+                badge.innerText = `🎯 ${centerName}`;
+                badge.style.background = isObjectDetected ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)';
+                badge.style.borderColor = isObjectDetected ? 'rgba(52, 211, 153, 0.85)' : 'rgba(248, 113, 113, 0.85)';
+                badge.style.color = '#fff';
+            } else {
+                badge.innerText = currentFauna.island || 'Sumatra';
+                badge.style.background = 'rgba(0, 0, 0, 0.35)';
+                badge.style.borderColor = 'rgba(255, 255, 255, 0.18)';
+                badge.style.color = 'rgba(255, 255, 255, 0.85)';
+            }
 
             if (currentFauna.is_caught) {
                 pillCaught.classList.add('active-caught');
@@ -1326,14 +1370,23 @@
                 pillCaught.classList.remove('active-caught');
             }
 
+            // 2. Logika busur panah & teks instruksi
             if (isObjectDetected) {
+                // Hewan di tengah adalah target misi yang tepat
                 bowStage.classList.add('detected');
                 pillCatch.classList.add('active-ready');
                 targetText.innerText = `Tarik panah ke bawah untuk menangkap ${currentFauna.name}!`;
-            } else {
+            } else if (currentCenterAnimal) {
+                // Ada hewan di tengah tetapi BUKAN target yang dicari
+                const centerName = currentCenterAnimal.cls === 0 ? 'Harimau Sumatra' : 'Badak Sumatra';
                 bowStage.classList.remove('detected');
                 pillCatch.classList.remove('active-ready');
-                targetText.innerText = `Arahkan panah ke Harimau Galaxy (${currentFauna.name})`;
+                targetText.innerText = `Bukan target! Ini ${centerName} (Target: ${currentFauna.name})`;
+            } else {
+                // Tidak ada hewan di tengah (kosong atau hanya di samping layar)
+                bowStage.classList.remove('detected');
+                pillCatch.classList.remove('active-ready');
+                targetText.innerText = `Arahkan panah ke ${currentFauna.name}`;
             }
         }
 
