@@ -15,11 +15,12 @@ with normalized coordinates (0..1). Class 0 is the Sumatran tiger and class 1 is
 from __future__ import annotations
 
 import argparse
+import os
 import shutil
 from pathlib import Path
 
-
 HERE = Path(__file__).resolve().parent
+os.environ.setdefault("YOLO_CONFIG_DIR", str(HERE.parent / ".ultralytics"))
 DATASET = HERE / "dataset"
 DATA_YAML = DATASET / "data.yaml"
 
@@ -98,6 +99,7 @@ def main() -> None:
         "epochs": args.epochs,
         "imgsz": args.imgsz,
         "batch": args.batch,
+        "workers": 0,  # Hindari shared memory error 1455 di Windows
         "project": str(HERE / "runs"),
         "name": "badak_harimau",
         "exist_ok": True,
@@ -114,8 +116,15 @@ def main() -> None:
         "mixup": 0.3,
         "copy_paste": 0.3,
     }
-    if args.device:
+    import torch
+    if args.device is not None:
         options["device"] = args.device
+    elif torch.cuda.is_available():
+        options["device"] = 0
+        print(f"Menggunakan Akselerasi GPU: {torch.cuda.get_device_name(0)}")
+    else:
+        options["device"] = "cpu"
+        print("Menggunakan CPU")
     result = model.train(**options)
     best_weights = Path(result.save_dir) / "weights" / "best.pt"
     exported_model = YOLO(str(best_weights)).export(format="onnx", imgsz=args.imgsz, nms=True)
