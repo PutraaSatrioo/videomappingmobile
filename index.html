@@ -825,6 +825,8 @@
         const DEFAULT_URL = 'https://lkyunvagzbodtmvbdfdm.supabase.co';
         const DEFAULT_KEY = 'sb_publishable_CRMI4bAg4seaGDWpY-CfEw_pqKDzO1z';
         const DEFAULT_TARGET = 'harimau_sumatra';
+        const FAUNA_CLASS_IDS = { harimau_sumatra: 0, badak_sumatra: 1, merak_jawa: 2 };
+        const FAUNA_CLASS_NAMES = { 0: 'Harimau Sumatra', 1: 'Badak Sumatra', 2: 'Merak Jawa' };
         const DEFAULT_HINT_MSG = 'Arahkan busur panah ke harimau galaxy, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!';
         const DETECTION_MODEL_URL = './track/badak_harimau.onnx';
         const MODEL_INPUT_SIZE = 320;
@@ -1110,8 +1112,7 @@
                 renderDetectionLabels(centerCandidate ? [centerCandidate] : []);
 
                 // Target misi aktif
-                const targetMap = { 'harimau_sumatra': 0, 'badak_sumatra': 1 };
-                const targetClassId = targetMap[currentTargetId] ?? (currentFauna && currentFauna.id === 'badak_sumatra' ? 1 : 0);
+                const targetClassId = FAUNA_CLASS_IDS[currentTargetId] ?? 0;
 
                 // Trigger HANYA jika hewan DI TENGAH cocok dengan target misi!
                 // Jika hewan di samping (atau hewan lain di tengah), trigger tidak akan aktif.
@@ -1343,7 +1344,7 @@
 
             // 1. Nama hewan di tengah atas menyesuaikan hewan yang ada di tengah layar (statis di UI, tanpa emot)
             if (currentCenterAnimal) {
-                const centerName = currentCenterAnimal.cls === 0 ? 'Harimau Sumatra' : 'Badak Sumatra';
+                const centerName = FAUNA_CLASS_NAMES[currentCenterAnimal.cls] || 'Fauna';
                 badge.innerText = centerName;
                 badge.style.background = isObjectDetected ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)';
                 badge.style.borderColor = isObjectDetected ? 'rgba(52, 211, 153, 0.85)' : 'rgba(248, 113, 113, 0.85)';
@@ -1369,7 +1370,7 @@
                 targetText.innerText = `Tarik panah ke bawah untuk menangkap ${currentFauna.name}!`;
             } else if (currentCenterAnimal) {
                 // Ada hewan di tengah tetapi BUKAN target yang dicari
-                const centerName = currentCenterAnimal.cls === 0 ? 'Harimau Sumatra' : 'Badak Sumatra';
+                const centerName = FAUNA_CLASS_NAMES[currentCenterAnimal.cls] || 'Fauna';
                 bowStage.classList.remove('detected');
                 pillCatch.classList.remove('active-ready');
                 targetText.innerText = `Bukan target! Ini ${centerName} (Target: ${currentFauna.name})`;
