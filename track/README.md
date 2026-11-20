@@ -10,8 +10,9 @@ Satu foto `Sumatra_Harimau.png` belum cukup untuk melatih model yang andal. Kump
 banyak foto harimau dengan variasi pose, ukuran, pencahayaan, latar, dan jarak kamera.
 Simpan sebagian untuk validasi agar bisa mengukur hasil pada foto yang tidak dipakai
 saat training. Anotasikan kotak yang mengelilingi harimau dengan format YOLO Detection
-(dua kelas: `harimau_sumatra` id `0` dan `badak_sumatra` id `1`) menggunakan alat anotasi seperti
-Label Studio atau CVAT, lalu ekspor dataset sebagai YOLO Detection.
+(tiga kelas: `harimau_sumatra` id `0`, `badak_sumatra` id `1`, dan
+`merak_jawa` id `2`) menggunakan alat anotasi seperti Label Studio atau CVAT,
+lalu ekspor dataset sebagai YOLO Detection.
 
 Struktur folder yang dibutuhkan:
 
@@ -36,7 +37,7 @@ Dari folder proyek:
 
 ```bash
 python -m pip install -r track/requirements.txt
-python track/generate_from_single_image.py --source track/badak_sumatra/badak_sumatra.png --class-id 1 --prefix badak --train-count 120 --val-count 30
+python track/generate_from_single_image.py --train-per-class 100 --val-per-class 25
 python track/train_model.py
 ```
 
@@ -54,4 +55,6 @@ daftar, tambahkan kelas dan data berlabel lalu sesuaikan pemetaan kelas di HTML.
 
 Dataset saat ini tetap perlu anotasi badak pada split train dan val. Skrip training sengaja berhenti jika salah satu kelas belum muncul di split tersebut. Setelah ekspor ONNX tersedia, halaman kamera menampilkan nama kelas dan confidence di atas setiap hewan yang terdeteksi.
 
-Generator badak membuat 120 gambar training dan 30 validasi dari PNG transparan, memberi label kelas `1`, dan mempertahankan gambar harimau yang sudah ada. Variasi sintetis dari satu gambar sumber berguna untuk alur awal, tetapi model tetap perlu diuji dan sebaiknya dilatih ulang dengan foto badak nyata yang beragam.
+Generator membuat 100 gambar training dan 25 validasi per kelas dari PNG transparan,
+termasuk `merak_jawa` dengan ID kelas `2`. Variasi sintetis dari satu gambar sumber
+berguna untuk alur awal, tetapi model tetap perlu diuji dengan foto nyata yang beragam.

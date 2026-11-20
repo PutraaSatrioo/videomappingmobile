@@ -10,8 +10,8 @@ imgsz: 320
 save: true
 save_period: -1
 cache: false
-device: ""
-workers: 8
+device: "0"
+workers: 0
 project: C:\Users\Putra\Downloads\tes\track\runs
 name: badak_harimau
 exist_ok: true

@@ -9,7 +9,8 @@ track/dataset/
   labels/val/*.txt
 
 Each label file has one row per object: ``class_id x_center y_center width height``
-with normalized coordinates (0..1). Class 0 is the Sumatran tiger and class 1 is the Sumatran rhino.
+with normalized coordinates (0..1). Classes 0, 1, and 2 are the Sumatran tiger,
+Sumatran rhino, and Javan peafowl.
 """
 
 from __future__ import annotations
@@ -57,9 +58,9 @@ def check_dataset() -> None:
             for row in label.read_text(encoding="utf-8").splitlines():
                 if row.strip():
                     class_ids.add(row.split()[0])
-        missing_classes = {"0", "1"} - class_ids
+        missing_classes = {"0", "1", "2"} - class_ids
         if missing_classes:
-            names = {"0": "harimau_sumatra", "1": "badak_sumatra"}
+            names = {"0": "harimau_sumatra", "1": "badak_sumatra", "2": "merak_jawa"}
             missing_names = ", ".join(names[class_id] for class_id in sorted(missing_classes))
             raise SystemExit(
                 f"Dataset {split} belum memiliki anotasi untuk: {missing_names}. "
@@ -84,7 +85,8 @@ def main() -> None:
         "val: images/val\n"
         "names:\n"
         "  0: harimau_sumatra\n"
-        "  1: badak_sumatra\n",
+        "  1: badak_sumatra\n"
+        "  2: merak_jawa\n",
         encoding="utf-8",
     )
 

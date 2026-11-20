@@ -1,8 +1,9 @@
-"""Generate synthetic YOLO dataset for both Harimau Sumatra and Badak Sumatra.
+"""Generate a synthetic YOLO dataset for the fauna classes used by the app.
 
 Supports multi-class dataset synthesis with automatic bounding boxes:
 - Class 0: harimau_sumatra
 - Class 1: badak_sumatra
+- Class 2: merak_jawa
 """
 
 from __future__ import annotations
@@ -24,6 +25,10 @@ DEFAULT_CLASSES = {
     1: {
         "name": "badak_sumatra",
         "path": HERE / "badak_sumatra" / "badak_clean.png",
+    },
+    2: {
+        "name": "merak_jawa",
+        "path": HERE / "merak_jawa" / "merak.png",
     },
 }
 
