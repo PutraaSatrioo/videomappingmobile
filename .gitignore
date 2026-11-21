@@ -2,3 +2,10 @@
 .ultralytics/
 track/runs/
 .python-runtime/
+
+# Generated training data, outputs, and Python cache
+track/dataset/
+track/runs/
+track/__pycache__/
+__pycache__/
+*.py[cod]

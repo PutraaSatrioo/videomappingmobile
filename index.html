@@ -607,7 +607,8 @@
             font-weight: 600;
         }
         
-        .form-group input {
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px;
             border-radius: 12px;
@@ -617,7 +618,8 @@
             font-size: 14px;
         }
         
-        .form-group input:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #ffffff;
         }
@@ -649,7 +651,7 @@
     <div id="captured-orb"></div>
 
     <!-- Pesan Hint Singkat -->
-    <div id="hint-toast">Arahkan busur panah ke harimau galaxy, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!</div>
+    <div id="hint-toast">Arahkan fauna ke tengah layar, lalu sentuh dan tarik anak panah ke bawah untuk menangkapnya!</div>
 
     <div class="ui-layer">
         <!-- Bar Atas -->
@@ -804,8 +806,11 @@
             <input type="text" id="input-key" placeholder="sb_publishable_..." />
         </div>
         <div class="form-group">
-            <label for="input-target">Target ID Fauna (Database)</label>
-            <input type="text" id="input-target" placeholder="harimau_sumatra" />
+            <label for="input-target">Fauna yang diburu (ID Supabase)</label>
+            <select id="input-target">
+                <option value="harimau_sumatra">Harimau Sumatra — harimau_sumatra</option>
+                <option value="badak_sumatra">Badak Sumatra — badak_sumatra</option>
+            </select>
         </div>
         <button class="btn-save" onclick="saveCredentials()">Simpan & Hubungkan</button>
     </div>
@@ -827,7 +832,7 @@
         const DEFAULT_TARGET = 'harimau_sumatra';
         const FAUNA_CLASS_IDS = { harimau_sumatra: 0, badak_sumatra: 1, merak_jawa: 2 };
         const FAUNA_CLASS_NAMES = { 0: 'Harimau Sumatra', 1: 'Badak Sumatra', 2: 'Merak Jawa' };
-        const DEFAULT_HINT_MSG = 'Arahkan busur panah ke harimau galaxy, lalu sentuh dan tarik anak panah ke bawah dan lepaskan!';
+        const DEFAULT_HINT_MSG = 'Arahkan fauna yang dipilih ke tengah layar, lalu tarik dan lepaskan anak panah untuk menangkapnya!';
         const DETECTION_MODEL_URL = './track/badak_harimau.onnx';
         const MODEL_INPUT_SIZE = 320;
         const DETECTION_CONFIDENCE = 0.45;
